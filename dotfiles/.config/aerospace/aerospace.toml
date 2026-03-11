@@ -1,0 +1,297 @@
+# Place a copy of this config to ~/.aerospace.toml
+# After that, you can edit ~/.aerospace.toml to your liking
+
+# You can use it to add commands that run after login to macOS user session.
+# 'start-at-login' needs to be 'true' for 'after-login-command' to work
+# Available commands: https://nikitabobko.github.io/AeroSpace/commands
+after-login-command = []
+
+# You can use it to add commands that run after AeroSpace startup.
+# 'after-startup-command' is run after 'after-login-command'
+# Available commands : https://nikitabobko.github.io/AeroSpace/commands
+after-startup-command = [
+  # JankyBorders has a built-in detection of already running process,
+  # so it won't be run twice on AeroSpace restart
+  'exec-and-forget borders active_color=0xffFFE6B3 inactive_color=0x22f9e2af width=5.0 hidpi=on',
+  'exec-and-forget sketchybar',
+]
+
+# Start AeroSpace at login
+start-at-login = true
+
+# Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# See: https://nikitabobko.github.io/AeroSpace/guide#layouts
+# The 'accordion-padding' specifies the size of accordion padding
+# You can set 0 to disable the padding feature
+accordion-padding = 40
+
+# Possible values: tiles|accordion
+default-root-container-layout = 'tiles'
+
+# Possible values: horizontal|vertical|auto
+# 'auto' means: wide monitor (anything wider than high) gets horizontal orientation,
+#               tall monitor (anything higher than wide) gets vertical orientation
+default-root-container-orientation = 'auto'
+
+# Mouse follows focus when focused monitor changes
+# Drop it from your config, if you don't like this behavior
+# See https://nikitabobko.github.io/AeroSpace/guide#on-focus-changed-callbacks
+# See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
+# Fallback value (if you omit the key): on-focused-monitor-changed = []
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
+# Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
+# Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
+automatically-unhide-macos-hidden-apps = true
+
+
+#ADDED STUFF
+#
+#
+#
+#
+#
+# Notify Sketchybar about workspace change and update icons
+exec-on-workspace-change = [
+  '/bin/bash',
+  '-c',
+  'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE PREV_WORKSPACE=$AEROSPACE_PREV_WORKSPACE',
+]
+
+# Possible values: (qwerty|dvorak)
+# See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
+[key-mapping]
+preset = 'qwerty'
+
+# Gaps between windows (inner-*) and between monitor edges (outer-*).
+# Possible values:
+# - Constant:     gaps.outer.top = 8
+# - Per monitor:  gaps.outer.top = [{ monitor.main = 16 }, { monitfor."some-pattern" = 32 }, 24]
+#                 In this example, 24 is a default value when there is no match.
+#                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
+#                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
+[gaps]
+inner.horizontal = 8
+inner.vertical = 4
+outer.bottom = 2
+outer.left = 3
+outer.right = 5
+outer.top = [{ monitor.1 = 52 }, { monitor.2 = 52 }, { monitor.3 = 52 }, 0]
+
+# 'main' binding mode declaration
+# See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
+# 'main' binding mode must be always presented
+# Fallback value (if you omit the key): mode.main.binding = {}
+[mode.main.binding]
+
+# All possible keys:
+# - Letters.        a, b, c, ..., z
+# - Numbers.        0, 1, 2, ..., 9
+# - Keypad numbers. keypad0, keypad1, keypad2, ..., keypad9
+# - F-keys.         f1, f2, ..., f20
+# - Special keys.   minus, equal, period, comma, slash, backslash, quote, semicolon, backtick,
+#                   leftSquareBracket, rightSquareBracket, space, enter, esc, backspace, tab
+# - Keypad special. keypadClear, keypadDecimalMark, keypadDivide, keypadEnter, keypadEqual,
+#                   keypadMinus, keypadMultiply, keypadPlus
+# - Arrows.         left, down, up, right
+
+# All possible modifiers: cmd, alt, ctrl, shift
+
+# All possible commands: https://nikitabobko.github.io/AeroSpace/commands
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
+# You can uncomment the following lines to open up terminal with alt + enter shortcut (like in i3)
+# alt-enter = '''exec-and-forget osascript -e '
+# tell application "Terminal"
+#     do script
+#     activate
+# end tell'
+# '''
+
+# App shortcuts
+# alt-shift-r = ['exec-and-forget /opt/homebrew/bin/sketchybar --reload']
+ctrl-cmd-1 = 'exec-and-forget open -a /Applications/Tabbit\ Browser.app'
+ctrl-cmd-2 = 'exec-and-forget open -a /Applications/Obsidian.app'
+ctrl-cmd-d = 'exec-and-forget open -a /Applications/Doubao.app'
+ctrl-cmd-f = 'exec-and-forget open -a /Applications/Folo.app'
+ctrl-cmd-i = 'exec-and-forget open -a /System/Applications/Mail.app'
+ctrl-cmd-m = 'exec-and-forget open -a ~/Applications/MemToy.app'
+ctrl-cmd-o = 'exec-and-forget open -a /Applications/Obsidian.app'
+ctrl-cmd-s = 'exec-and-forget open -a /Applications/Sublime\ Text.app'
+ctrl-cmd-t = 'exec-and-forget open -a /Applications/Typora.app'
+ctrl-cmd-w = 'exec-and-forget open -a /Applications/WezTerm.app'
+
+# See: https://nikitabobko.github.ioeAeroSpace/commands#layout
+ctrl-cmd-shift-f = 'fullscreen'
+# Toggle between floating and tiling layout
+ctrl-cmd-shift-p = ['layout floating tiling']
+# Reset layout
+ctrl-cmd-shift-r = ['flatten-workspace-tree']
+# Switch between horizontal and vertical orientation under tiles layout
+alt-slash = 'layout tiles horizontal vertical'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#focus
+ctrl-cmd-h = 'focus left'
+ctrl-cmd-j = 'focus down'
+ctrl-cmd-k = 'focus up'
+ctrl-cmd-l = 'focus right'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#move
+ctrl-cmd-shift-h = 'move left'
+ctrl-cmd-shift-j = 'move down'
+ctrl-cmd-shift-k = 'move up'
+ctrl-cmd-shift-l = 'move right'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#resize
+ctrl-cmd-equal = 'resize smart +50'
+ctrl-cmd-minus = 'resize smart -50'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+# alt-5 = 'workspace 5'
+# alt-6 = 'workspace 6'
+alt-i = 'workspace i'
+alt-m = 'workspace m'
+alt-o = 'workspace o'
+alt-t = 'workspace t'
+alt-w = 'workspace w'
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
+alt-tab = 'workspace-back-and-forth'
+# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
+alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+# disable "hide application" defaults to mac
+cmd-h = [] # Disable "hide application"
+
+# See: https://nikitabobko.github.io/AeroSpace/commands#mode
+ctrl-cmd-quote = 'mode send'
+ctrl-cmd-semicolon = 'mode service'
+
+# 'service' binding mode declaration.
+# See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
+[mode.service.binding]
+# backspace = ['close-all-windows-but-current', 'mode main']
+backspace = ['close-all-windows-but-current', 'mode main']
+esc = ['reload-config', 'mode main']
+# sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
+# s = ['layout sticky tiling', 'mode main']
+h = ['join-with left', 'mode main']
+j = ['join-with down', 'mode main']
+k = ['join-with up', 'mode main']
+l = ['join-with right', 'mode main']
+left = ['move-workspace-to-monitor --wrap-around prev', 'mode main']
+right = ['move-workspace-to-monitor --wrap-around next', 'mode main']
+shift-h = ['move-workspace-to-monitor --wrap-around prev', 'mode main']
+shift-l = ['move-workspace-to-monitor --wrap-around next', 'mode main']
+
+[mode.send.binding]
+esc = ['reload-config', 'mode main']
+shift-1 = ['move-workspace-to-monitor 1', 'mode main']
+shift-2 = ['move-workspace-to-monitor 2', 'mode main']
+shift-3 = ['move-workspace-to-monitor 3', 'mode main']
+# See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
+1 = [
+  'move-node-to-workspace 1',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=1 FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+2 = [
+  'move-node-to-workspace 2',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=2 FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+3 = [
+  'move-node-to-workspace 3',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=3 FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+4 = [
+  'move-node-to-workspace 4',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=4 FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+i = [
+  'move-node-to-workspace i',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=i FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+m = [
+  'move-node-to-workspace m',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=m FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+o = [
+  'move-node-to-workspace o',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=o FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+t = [
+  'move-node-to-workspace t',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=t FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+w = [
+  'move-node-to-workspace w',
+  'exec-and-forget sketchybar --trigger change-window-workspace TARGET_WORKSPACE=w FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)',
+  'mode main',
+]
+
+
+# Default space
+[[on-window-detected]]
+if.app-id = 'com.tab-browser.Tabbit'
+run = ['move-node-to-workspace 1']
+
+[[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = ['move-node-to-workspace w']
+
+[[on-window-detected]]
+if.app-id = 'com.bot.pc.doubao'
+run = ['move-node-to-workspace m']
+
+[[on-window-detected]]
+if.app-id = 'tech.rianico.memtoy'
+run = ['move-node-to-workspace m']
+
+[[on-window-detected]]
+if.app-id = 'net.ankiweb.dtop'
+run = ['move-node-to-workspace m']
+
+[[on-window-detected]]
+if.app-id = 'com.sublimetext.4'
+run = ['move-node-to-workspace t']
+
+[[on-window-detected]]
+if.app-id = 'abnerworks.Typora'
+run = ['move-node-to-workspace t']
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = ['move-node-to-workspace o']
+
+[[on-window-detected]]
+if.app-id = 'is.follow'
+run = ['move-node-to-workspace i']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.mail'
+run = ['move-node-to-workspace i']
+
+[workspace-to-monitor-force-assignment]
+# 1 = 1                           # Monitor sequence number from left to right. 1-based indexing
+# 2 = 'main'                      # Main monitor
+# 3 = 'secondary'                 # Non-main monitor in case when there are only two monitors
+# 4 = 'built-in'                  # Case insensitive regex substring
+# 5 = '^built-in retina display$' # Case insensitive regex match
+# 6 = ['secondary', 'dell']       # You can specify multiple patterns.
+#   The first matching pattern will be used
+t = 2
