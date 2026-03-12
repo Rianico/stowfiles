@@ -5,6 +5,35 @@
 
 set -euo pipefail
 
+# Color and formatting functions
+print_success() {
+    echo -e "\033[32m✓\033[0m $1"  # Green checkmark
+}
+
+print_error() {
+    echo -e "\033[31m✗\033[0m $1" >&2  # Red X
+}
+
+print_warning() {
+    echo -e "\033[33m⚠\033[0m $1" >&2  # Yellow warning
+}
+
+print_info() {
+    echo -e "\033[34mℹ\033[0m $1"  # Blue info
+}
+
+print_header() {
+    echo -e "\033[1;36m=== $1 ===\033[0m"  # Cyan bold header
+}
+
+print_subheader() {
+    echo -e "\033[1;35m→ $1\033[0m"  # Magenta bold subheader
+}
+
+print_package() {
+    echo -e "\033[1;33m$1\033[0m"  # Bold yellow for package names
+}
+
 SCRIPT_NAME="$(basename "$0")"
 
 # Default values
@@ -14,21 +43,21 @@ DEFAULT_TARGET="$HOME/.claude/skills"
 # Function to display help information
 show_help() {
     cat << EOF
-Usage: $SCRIPT_NAME [COMMAND] [OPTIONS]
+\033[1;36mUsage: $SCRIPT_NAME [COMMAND] [OPTIONS]\033[0m
 
 Install or uninstall Claude skills using stow with customizable target directory and packages.
 Packages containing slashes (e.g., category/package) are handled with direct symbolic links.
 
-COMMANDS:
+\033[1;35mCOMMANDS:\033[0m
     install              Install packages (default if no command specified)
     uninstall            Uninstall packages
 
-OPTIONS:
+\033[1;35mOPTIONS:\033[0m
     -t, --target PATH     Target directory for stowing skills (default: $DEFAULT_TARGET)
     -p, --packages PKGS   Space-separated list of packages to install/uninstall (default: $DEFAULT_PACKAGE for install)
     -h, --help           Show this help message
 
-EXAMPLES:
+\033[1;35mEXAMPLES:\033[0m
     $SCRIPT_NAME install                              # Install 'general' package to ~/.claude/skills
     $SCRIPT_NAME install -t /custom/path              # Install 'general' package to /custom/path
     $SCRIPT_NAME install -p package1 package2         # Install multiple packages to default location
@@ -54,7 +83,7 @@ if [[ $# -gt 0 && "$1" != -* ]]; then
             shift
             ;;
         *)
-            echo "Unknown command: $1" >&2
+            print_error "Unknown command: $1"
             show_help
             exit 1
             ;;
@@ -81,7 +110,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         *)
-            echo "Unknown option: $1" >&2
+            print_error "Unknown option: $1"
             show_help
             exit 1
             ;;
@@ -97,14 +126,14 @@ if [[ ${#PACKAGES[@]} -eq 0 ]]; then
     if [[ "$MODE" == "install" ]]; then
         PACKAGES=("$DEFAULT_PACKAGE")
     else
-        echo "Error: Packages are required for uninstall operation. Use -p or --packages to specify packages to uninstall." >&2
+        print_error "Packages are required for uninstall operation. Use -p or --packages to specify packages to uninstall."
         exit 1
     fi
 fi
 
 # Validate inputs
 if ! command -v stow &> /dev/null; then
-    echo "Error: stow command not found. Please install GNU stow." >&2
+    print_error "stow command not found. Please install GNU stow."
     exit 1
 fi
 
@@ -116,21 +145,21 @@ fi
 # Security validation to prevent directory traversal
 case "$TARGET_DIR" in
     */..|*/../|*/../..|*/../../|*\\.\\.|*\\.\\./|*\\.\\./*)
-        echo "Error: Invalid target directory - suspected directory traversal attempt." >&2
+        print_error "Invalid target directory - suspected directory traversal attempt."
         exit 1
         ;;
 esac
 
 # Additional check after tilde expansion
 if [[ "$TARGET_DIR" == *".."* ]]; then
-    echo "Error: Invalid target directory - suspected directory traversal attempt." >&2
+    print_error "Invalid target directory - suspected directory traversal attempt."
     exit 1
 fi
 
 # Validate source directory exists (script is now inside the claude-skills directory)
 SKILLS_SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ ! -d "$SKILLS_SOURCE_DIR" ]]; then
-    echo "Error: Skills source directory does not exist: $SKILLS_SOURCE_DIR" >&2
+    print_error "Skills source directory does not exist: $SKILLS_SOURCE_DIR"
     exit 1
 fi
 
@@ -140,13 +169,13 @@ if [[ "$MODE" == "install" ]]; then
         if [[ "$pkg" == */* ]]; then
             # Handle packages with slashes - check if the subdirectory exists
             if [[ ! -d "$SKILLS_SOURCE_DIR/$pkg" ]]; then
-                echo "Error: Package '$pkg' does not exist in source directory: $SKILLS_SOURCE_DIR" >&2
+                print_error "Package '$pkg' does not exist in source directory: $SKILLS_SOURCE_DIR"
                 exit 1
             fi
         else
             # Handle regular packages - check if the directory exists
             if [[ ! -d "$SKILLS_SOURCE_DIR/$pkg" ]]; then
-                echo "Error: Package '$pkg' does not exist in source directory: $SKILLS_SOURCE_DIR" >&2
+                print_error "Package '$pkg' does not exist in source directory: $SKILLS_SOURCE_DIR"
                 exit 1
             fi
         fi
@@ -157,11 +186,33 @@ if [[ "$MODE" == "install" ]]; then
 fi
 
 if [[ "$MODE" == "install" ]]; then
-    echo "Installing Claude skills to: $TARGET_DIR"
-    echo "Packages to install: ${PACKAGES[*]}"
+    print_header "Installing Claude skills"
+    # Print each package with color
+    package_list=""
+    for pkg in "${PACKAGES[@]}"; do
+        if [[ -z "$package_list" ]]; then
+            package_list="$(print_package "$pkg")"
+        else
+            package_list="$package_list $(print_package "$pkg")"
+        fi
+    done
+    print_info "Target directory: $TARGET_DIR"
+    print_info "Packages: $package_list"
+    echo -e "\033[1;30m─────────────────────────────────────\033[0m"  # Gray separator
 elif [[ "$MODE" == "uninstall" ]]; then
-    echo "Uninstalling Claude skills from: $TARGET_DIR"
-    echo "Packages to uninstall: ${PACKAGES[*]}"
+    print_header "Uninstalling Claude skills"
+    # Print each package with color
+    package_list=""
+    for pkg in "${PACKAGES[@]}"; do
+        if [[ -z "$package_list" ]]; then
+            package_list="$(print_package "$pkg")"
+        else
+            package_list="$package_list $(print_package "$pkg")"
+        fi
+    done
+    print_info "Target directory: $TARGET_DIR"
+    print_info "Packages: $package_list"
+    echo -e "\033[1;30m─────────────────────────────────────\033[0m"  # Gray separator
 fi
 
 # Change to the skills source directory and run stow
@@ -174,40 +225,81 @@ for pkg in "${PACKAGES[@]}"; do
         source_path="$SKILLS_SOURCE_DIR/$pkg"
 
         if [[ "$MODE" == "install" ]]; then
-            echo "Installing package with slash: $pkg"
+            print_subheader "Installing package: $(print_package "$pkg")"
             if [[ -e "$target_path" ]]; then
-                echo "Warning: $target_path already exists, skipping..." >&2
+                print_warning "Package $(print_package "$pkg") already installed, skipping..."
             else
                 mkdir -p "$(dirname "$target_path")"
                 ln -s "$source_path" "$target_path"
-                echo "Created symbolic link: $target_path -> $source_path"
+                print_success "Success"
             fi
         elif [[ "$MODE" == "uninstall" ]]; then
-            echo "Uninstalling package with slash: $pkg"
+            print_subheader "Uninstalling package: $(print_package "$pkg")"
             if [[ -L "$target_path" ]] && [[ "$(readlink "$target_path")" == "$source_path" ]]; then
                 rm "$target_path"
-                echo "Removed symbolic link: $target_path"
+                print_success "Success"
 
                 # Optionally remove empty parent directories created by us
                 rmdir -p "$(dirname "$target_path")" 2>/dev/null || true
             else
-                echo "Warning: Expected symbolic link $target_path does not exist or points elsewhere" >&2
+                print_warning "Package $(print_package "$pkg") not installed, skipping..."
             fi
         fi
     else
         # Handle regular packages with stow
         if [[ "$MODE" == "install" ]]; then
-            echo "Installing package: $pkg"
-            stow -t "$TARGET_DIR" "$pkg"
+            print_subheader "Installing package: $(print_package "$pkg")"
+            # With stow, we need to check if any of the package contents already exist in target
+            # We'll check the first level of items in the package directory to see if they exist in target
+            pkg_items=()
+            while IFS= read -r -d '' item; do
+                pkg_items+=("$(basename "$item")")
+            done < <(find "$SKILLS_SOURCE_DIR/$pkg" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
+
+            already_installed=false
+            for item in "${pkg_items[@]}"; do
+                if [[ -e "$TARGET_DIR/$item" ]]; then
+                    already_installed=true
+                    break
+                fi
+            done
+
+            if [[ "$already_installed" == true ]]; then
+                print_warning "Package $(print_package "$pkg") already installed, skipping..."
+            else
+                stow -t "$TARGET_DIR" "$pkg"
+                print_success "Success"
+            fi
         elif [[ "$MODE" == "uninstall" ]]; then
-            echo "Uninstalling package: $pkg"
-            stow -D -t "$TARGET_DIR" "$pkg"
+            print_subheader "Uninstalling package: $(print_package "$pkg")"
+            # Similarly, check if package items exist in target to determine if package is installed
+            pkg_items=()
+            while IFS= read -r -d '' item; do
+                pkg_items+=("$(basename "$item")")
+            done < <(find "$SKILLS_SOURCE_DIR/$pkg" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
+
+            any_exists=false
+            for item in "${pkg_items[@]}"; do
+                if [[ -e "$TARGET_DIR/$item" ]]; then
+                    any_exists=true
+                    break
+                fi
+            done
+
+            if [[ "$any_exists" == false ]]; then
+                print_warning "Package $(print_package "$pkg") not installed, skipping..."
+            else
+                stow -D -t "$TARGET_DIR" "$pkg"
+                print_success "Success"
+            fi
         fi
     fi
 done
 
 if [[ "$MODE" == "install" ]]; then
-    echo "Installation completed successfully!"
+    echo -e "\033[1;30m─────────────────────────────────────\033[0m"  # Gray separator
+    print_success "Installation completed successfully!"
 elif [[ "$MODE" == "uninstall" ]]; then
-    echo "Uninstallation completed successfully!"
+    echo -e "\033[1;30m─────────────────────────────────────\033[0m"  # Gray separator
+    print_success "Uninstallation completed successfully!"
 fi
