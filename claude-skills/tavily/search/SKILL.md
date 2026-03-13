@@ -1,30 +1,11 @@
 ---
 name: search
-description: "Search the web using Tavily's LLM-optimized search API. Returns relevant results with content snippets, scores, and metadata. Use when you need to find web content on any topic."
+description: "Search the web by Tavily's LLM-optimized search API. Return relevant results with content snippets, scores, and metadata. Use when you need to find web content on any topic."
 ---
 
 # Search Skill
 
-Search the web and get relevant results optimized for LLM consumption.
-
-## Authentication
-
-The script uses OAuth via the Tavily MCP server. **No manual setup required** - on first run, it will:
-1. Check for existing tokens in `~/.mcp-auth/`
-2. If none found, automatically open your browser for OAuth authentication
-
-> **Note:** You must have an existing Tavily account. The OAuth flow only supports login — account creation is not available through this flow. [Sign up at tavily.com](https://tavily.com) first if you don't have an account.
-
-### Alternative: API Key
-
-If you prefer using an API key, get one at https://tavily.com and add to `~/.claude/settings.json`:
-```json
-{
-  "env": {
-    "TAVILY_API_KEY": "tvly-your-api-key-here"
-  }
-}
-```
+Use script to search the web and get relevant results optimized for LLM consumption.
 
 ## Quick Start
 
@@ -47,50 +28,12 @@ If you prefer using an API key, get one at https://tavily.com and add to `~/.cla
 
 # Domain-filtered search
 ./scripts/search.sh '{"query": "machine learning", "include_domains": ["arxiv.org", "github.com"], "search_depth": "advanced"}'
-```
 
-### Basic Search
-
-```bash
-curl --request POST \
-  --url https://api.tavily.com/search \
-  --header "Authorization: Bearer $TAVILY_API_KEY" \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "query": "latest developments in quantum computing",
-    "max_results": 5
-  }'
-```
-
-### Advanced Search
-
-```bash
-curl --request POST \
-  --url https://api.tavily.com/search \
-  --header "Authorization: Bearer $TAVILY_API_KEY" \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "query": "machine learning best practices",
-    "max_results": 10,
-    "search_depth": "advanced",
-    "include_domains": ["arxiv.org", "github.com"]
-  }'
+# Include raw content
+./scripts/search.sh '{"query": "machine learning", "include_raw_content": true, "search_depth": "advanced"}'
 ```
 
 ## API Reference
-
-### Endpoint
-
-```
-POST https://api.tavily.com/search
-```
-
-### Headers
-
-| Header | Value |
-|--------|-------|
-| `Authorization` | `Bearer <TAVILY_API_KEY>` |
-| `Content-Type` | `application/json` |
 
 ### Request Body
 
@@ -142,36 +85,6 @@ POST https://api.tavily.com/search
 - `fast`: Need chunks but latency matters
 - `basic`: General-purpose, balanced
 - `advanced`: Precision matters (default recommendation)
-
-## Examples
-
-### Domain-Filtered Search
-
-```bash
-curl --request POST \
-  --url https://api.tavily.com/search \
-  --header "Authorization: Bearer $TAVILY_API_KEY" \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "query": "Python async best practices",
-    "include_domains": ["docs.python.org", "realpython.com", "github.com"],
-    "search_depth": "advanced"
-  }'
-```
-
-### Search with Full Content
-
-```bash
-curl --request POST \
-  --url https://api.tavily.com/search \
-  --header "Authorization: Bearer $TAVILY_API_KEY" \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "query": "React hooks tutorial",
-    "max_results": 3,
-    "include_raw_content": true
-  }'
-```
 
 ## Tips
 
