@@ -106,6 +106,11 @@ To set up this environment:
    ./claude-skills/claude-skills.sh install
    ```
 
+6. Apply extra settings:
+   ```bash
+   git config --global core.excludesfile ~/.gitignore_global
+   ```
+
 ## Customization
 
 Most configurations can be customized by modifying the respective files in the `dotfiles/` directory before deployment. Key files to customize include:
