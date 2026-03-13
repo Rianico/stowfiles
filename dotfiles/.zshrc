@@ -56,10 +56,6 @@ zinit snippet OMZP::git
 
 zinit snippet OMZP::command-not-found
 
-## zoxide
-ZOXIDE_CMD_OVERRIDE='cd'
-zinit snippet OMZP::zoxide
-
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 # prefix: ctrl-g, f: files, b: branches, t: tags, r: remotes
@@ -176,3 +172,7 @@ ABBR_LOG_AVAILABLE_ABBREVIATION=1
 if [ ! -s "$HOME/.config/zsh-abbr/user-abbreviations" ]; then
   abbr import-aliases
 fi
+
+## zoxide
+ZOXIDE_CMD_OVERRIDE='cd'
+zinit snippet OMZP::zoxide
