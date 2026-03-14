@@ -6,10 +6,25 @@
       "sourceType": "git",
       "computedHash": "bca33ec7db2d49d70c9b4eb058a6a3670e362b8d90ce8acb40a8cec4791ab7f8"
     },
+    "excalidraw-diagram": {
+      "source": "axtonliu/axton-obsidian-visual-skills",
+      "sourceType": "github",
+      "computedHash": "9c9592ccce8ec78626088714ca35f164d0dd2a79235e130e52f43f308ee83315"
+    },
+    "excalidraw-diagram-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "e24e3c4cab4b5a07bc1d1801db14868f3a1cd184f7f28f5dd2c4a2b234bf2f2d"
+    },
     "json-canvas": {
       "source": "kepano/obsidian-skills",
       "sourceType": "git",
       "computedHash": "56cbac74a93e4fba97f4d44bccfdeaae89e545b223f47df392c7705e01e6c543"
+    },
+    "mermaid-diagrams": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "6d36e69adad781f106a2fb4b19ebc22bf0c211babdc0d1ae5822fa65abb48bd8"
     },
     "obsidian-bases": {
       "source": "kepano/obsidian-skills",
@@ -25,6 +40,11 @@
       "source": "kepano/obsidian-skills",
       "sourceType": "git",
       "computedHash": "cacc9058a35ad3fd4985b4c31121bff8202f1337c39808c1326ded6a19a7915f"
+    },
+    "pretty-mermaid": {
+      "source": "imxv/pretty-mermaid-skills",
+      "sourceType": "github",
+      "computedHash": "7c490ca8cac54a6038dcf31cb5f5472ff1c982e7352763ebb54e5387349529a6"
     }
   }
 }
