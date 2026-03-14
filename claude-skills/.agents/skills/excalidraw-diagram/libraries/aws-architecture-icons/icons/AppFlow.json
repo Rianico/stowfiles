@@ -1,0 +1,204 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "text",
+      "version": 1893,
+      "versionNonce": 1892731840,
+      "index": "c14O",
+      "isDeleted": false,
+      "id": "HIiJbX8dIWLatoU_93ZBm",
+      "fillStyle": "hachure",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1670.4581402494632,
+      "y": 2712.9537929335775,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 72.84000396728516,
+      "height": 24,
+      "seed": 1106836867,
+      "groupIds": [
+        "mTfQvl-ykTjX7SJKNdzL6"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995396823,
+      "link": null,
+      "locked": false,
+      "fontSize": 20,
+      "fontFamily": 1,
+      "text": "AppFlow",
+      "textAlign": "center",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "AppFlow",
+      "autoResize": true,
+      "lineHeight": 1.2
+    },
+    {
+      "type": "rectangle",
+      "version": 2280,
+      "versionNonce": 2084656064,
+      "index": "c14P",
+      "isDeleted": false,
+      "id": "zH9diEni4RCJz0-lfDbzc",
+      "fillStyle": "cross-hatch",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1674.6475660506273,
+      "y": 2646.2696560783806,
+      "strokeColor": "#000000",
+      "backgroundColor": "#e6498088",
+      "width": 64.46115236495699,
+      "height": 64.39942473426015,
+      "seed": 94655779,
+      "groupIds": [
+        "vyUM6TBIhC9fSS092RnRi",
+        "mTfQvl-ykTjX7SJKNdzL6"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995396823,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "arrow",
+      "version": 1079,
+      "versionNonce": 1482742720,
+      "index": "c14Q",
+      "isDeleted": false,
+      "id": "76Tn1xPVKsNYbj-7q0hBp",
+      "fillStyle": "cross-hatch",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1702.0343922331058,
+      "y": 2668.0006184455106,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 29.910714285714278,
+      "height": 27.5,
+      "seed": 1430501571,
+      "groupIds": [
+        "c05XEIdH1MtMTIJEVpr_j",
+        "vyUM6TBIhC9fSS092RnRi",
+        "mTfQvl-ykTjX7SJKNdzL6"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995396823,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -8.75,
+          1.875
+        ],
+        [
+          -15.624999999999943,
+          16.875
+        ],
+        [
+          -8.75,
+          27.5
+        ],
+        [
+          3.125,
+          26.875
+        ],
+        [
+          14.285714285714334,
+          5.8035714285715585
+        ]
+      ]
+    },
+    {
+      "type": "arrow",
+      "version": 1080,
+      "versionNonce": 391078848,
+      "index": "c14R",
+      "isDeleted": false,
+      "id": "KKxdWeLU9fr-xPFKQQR0E",
+      "fillStyle": "cross-hatch",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 3.141592653589793,
+      "x": 1709.3111779473916,
+      "y": 2661.4381184455106,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 29.910714285714278,
+      "height": 26.25,
+      "seed": 779462755,
+      "groupIds": [
+        "c05XEIdH1MtMTIJEVpr_j",
+        "vyUM6TBIhC9fSS092RnRi",
+        "mTfQvl-ykTjX7SJKNdzL6"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995396823,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -7.5,
+          1.25
+        ],
+        [
+          -11.874999999999943,
+          15.625
+        ],
+        [
+          -5,
+          26.25
+        ],
+        [
+          6.875,
+          25.625
+        ],
+        [
+          18.035714285714334,
+          3.8392857142857792
+        ]
+      ]
+    }
+  ],
+  "id": "D0T2kQ6yUjeYO74AJ5Dgt",
+  "created": 1731064734153,
+  "name": "AppFlow"
+}

@@ -1,0 +1,72 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "ellipse",
+      "version": 199,
+      "versionNonce": 653815412,
+      "isDeleted": false,
+      "id": "PpxKqn6nvuiWK06akRnRd",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 380.44985864533857,
+      "y": 186.84811063630235,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 12.44722803472689,
+      "height": 12.44722803472689,
+      "seed": 1055615930,
+      "groupIds": [
+        "CjtCLEiaq616PsWdlMRwi"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201532404,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "text",
+      "version": 160,
+      "versionNonce": 904061644,
+      "isDeleted": false,
+      "id": "GU4EjRWYBO15L4FNrzUYi",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 399.16533065522356,
+      "y": 186.38927819632727,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 32.74398764095878,
+      "height": 13.364892914677055,
+      "seed": 1734779258,
+      "groupIds": [
+        "CjtCLEiaq616PsWdlMRwi"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201532404,
+      "link": null,
+      "locked": false,
+      "fontSize": 10.691914331741641,
+      "fontFamily": 1,
+      "text": "Option",
+      "baseline": 9.364892914677055,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Option"
+    }
+  ],
+  "id": "hSbfOyPmYLaKuu-dZyY8D",
+  "created": 1664201644381,
+  "name": "Radio button (text+icon)"
+}

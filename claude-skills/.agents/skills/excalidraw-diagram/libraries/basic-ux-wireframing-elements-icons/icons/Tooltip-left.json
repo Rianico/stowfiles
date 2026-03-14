@@ -1,0 +1,107 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "line",
+      "version": 2324,
+      "versionNonce": 455937612,
+      "isDeleted": false,
+      "id": "u-fNlAls2YVsGSKXji2gq",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 1.5707963267948966,
+      "x": 627.6608951409414,
+      "y": 356.2826146313303,
+      "strokeColor": "transparent",
+      "backgroundColor": "black",
+      "width": 18.158413138845617,
+      "height": 50.889719740905036,
+      "seed": 151898086,
+      "groupIds": [
+        "puS8r1P4ak4KXjAWiy2lY"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201733063,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -3.23061480948494,
+          -4.045963607932606
+        ],
+        [
+          -6.4495516929401795,
+          0.03191670437348648
+        ],
+        [
+          -12.172717615299081,
+          0.011197061674522502
+        ],
+        [
+          -12.292721648535121,
+          46.78909153248003
+        ],
+        [
+          5.865691490310495,
+          46.84375613297243
+        ],
+        [
+          5.766031477310201,
+          -0.011306066872350584
+        ]
+      ]
+    },
+    {
+      "type": "text",
+      "version": 367,
+      "versionNonce": 1152044148,
+      "isDeleted": false,
+      "id": "WM1iTOl0uipcyd1xVsZgC",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 610.0487883876448,
+      "y": 374.19286711250794,
+      "strokeColor": "white",
+      "backgroundColor": "transparent",
+      "width": 23.70798664554789,
+      "height": 8.467138087695682,
+      "seed": 763335034,
+      "groupIds": [
+        "puS8r1P4ak4KXjAWiy2lY"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201733063,
+      "link": null,
+      "locked": false,
+      "fontSize": 6.773710470156542,
+      "fontFamily": 1,
+      "text": "Tooltip",
+      "baseline": 5.467138087695682,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Tooltip"
+    }
+  ],
+  "id": "nLLGX0LftT7AfoUJLp5GY",
+  "created": 1664201734332,
+  "name": "Tooltip (left)"
+}

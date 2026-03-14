@@ -1,0 +1,119 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 372,
+      "versionNonce": 102666316,
+      "isDeleted": false,
+      "id": "qHMWsVB6zDM8XLNUeW99x",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 380.98636849885804,
+      "y": 393.4569296113991,
+      "strokeColor": "#ced4da",
+      "backgroundColor": "#ced4da",
+      "width": 11.07566424678464,
+      "height": 11.07566424678464,
+      "seed": 910429562,
+      "groupIds": [
+        "X2h81jCfFcniPe6qPY4GU"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201669245,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "text",
+      "version": 509,
+      "versionNonce": 1560963700,
+      "isDeleted": false,
+      "id": "pmzx4CRkFrBGUpu-jPeJb",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 398.2425093752944,
+      "y": 391.8353370279757,
+      "strokeColor": "#ced4da",
+      "backgroundColor": "transparent",
+      "width": 94,
+      "height": 14,
+      "seed": 1240014630,
+      "groupIds": [
+        "X2h81jCfFcniPe6qPY4GU"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201669245,
+      "link": null,
+      "locked": false,
+      "fontSize": 10.691914331741641,
+      "fontFamily": 1,
+      "text": "Disabled selected",
+      "baseline": 10,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Disabled selected"
+    },
+    {
+      "type": "line",
+      "version": 277,
+      "versionNonce": 520005324,
+      "isDeleted": false,
+      "id": "cssxwZ9Gbt_ksdkJu4x20",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 381.7281391007673,
+      "y": 398.5350081406581,
+      "strokeColor": "white",
+      "backgroundColor": "transparent",
+      "width": 9.039088107826217,
+      "height": 6.5411285869162725,
+      "seed": 2081967674,
+      "groupIds": [
+        "X2h81jCfFcniPe6qPY4GU"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201669245,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          3.264881713992736,
+          3.515817032745815
+        ],
+        [
+          9.039088107826217,
+          -3.0253115541704574
+        ]
+      ]
+    }
+  ],
+  "id": "1RPhpeLm-i671MCxWcMLZ",
+  "created": 1664201670594,
+  "name": "Selected disabled checkbox (text+icon)"
+}

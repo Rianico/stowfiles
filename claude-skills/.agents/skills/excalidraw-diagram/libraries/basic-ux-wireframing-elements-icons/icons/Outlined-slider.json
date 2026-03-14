@@ -1,0 +1,64 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 396,
+      "versionNonce": 476426956,
+      "isDeleted": false,
+      "id": "e2Fo5UCYiOmGIqla_BgiV",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 573.3584344569944,
+      "y": 730.6435565961856,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 108.26964261709333,
+      "height": 3.7153657725164964,
+      "seed": 1191373739,
+      "groupIds": [
+        "ogFHwW-HJGDSEsGBbUSeK"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201792329,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "ellipse",
+      "version": 355,
+      "versionNonce": 203206644,
+      "isDeleted": false,
+      "id": "uVrWMlRDYVjxZy9xgJKrq",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 646.2451234513311,
+      "y": 727.2116217562598,
+      "strokeColor": "#000000",
+      "backgroundColor": "white",
+      "width": 10.579235452368332,
+      "height": 10.579235452368332,
+      "seed": 580795979,
+      "groupIds": [
+        "ogFHwW-HJGDSEsGBbUSeK"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201792329,
+      "link": null,
+      "locked": false
+    }
+  ],
+  "id": "v8tFFdeAdrx1pvJc9HiDw",
+  "created": 1664201793476,
+  "name": "Outlined slider"
+}

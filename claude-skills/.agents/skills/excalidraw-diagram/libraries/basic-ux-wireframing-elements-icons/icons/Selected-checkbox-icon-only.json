@@ -1,0 +1,79 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 387,
+      "versionNonce": 1328688244,
+      "isDeleted": false,
+      "id": "F833Kudd7hCrpejE4PMTx",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 539.0804758629042,
+      "y": 257.5761020610207,
+      "strokeColor": "#000000",
+      "backgroundColor": "black",
+      "width": 11.07566424678464,
+      "height": 11.07566424678464,
+      "seed": 1752964922,
+      "groupIds": [],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201532405,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "line",
+      "version": 294,
+      "versionNonce": 363594956,
+      "isDeleted": false,
+      "id": "pbCUu6eVoiyW9iL1fzozA",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 539.8222464648134,
+      "y": 262.6541805902798,
+      "strokeColor": "white",
+      "backgroundColor": "transparent",
+      "width": 9.039088107826217,
+      "height": 6.5411285869162725,
+      "seed": 71567718,
+      "groupIds": [],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201532405,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          3.264881713992736,
+          3.515817032745815
+        ],
+        [
+          9.039088107826217,
+          -3.0253115541704574
+        ]
+      ]
+    }
+  ],
+  "id": "9CPQcCuklDu74ZNfpOn_I",
+  "created": 1664201704968,
+  "name": "Selected checkbox (icon only)"
+}

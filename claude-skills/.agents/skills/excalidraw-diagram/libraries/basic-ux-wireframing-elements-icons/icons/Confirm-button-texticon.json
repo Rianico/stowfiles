@@ -1,0 +1,119 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 486,
+      "versionNonce": 49155404,
+      "isDeleted": false,
+      "id": "Z3etw9hI47O99ReUmkCnK",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 771.2852389230401,
+      "y": 677.9792426979247,
+      "strokeColor": "#000000",
+      "backgroundColor": "black",
+      "width": 72.21411093083661,
+      "height": 20.14342352952438,
+      "seed": 1346296843,
+      "groupIds": [
+        "yYHwRkiP8DjDNOLMiDEOf"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201818080,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "text",
+      "version": 636,
+      "versionNonce": 1958559092,
+      "isDeleted": false,
+      "id": "DbaH8OZBGCk6zcFVoWh7L",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 799.1188647450393,
+      "y": 682.550954462687,
+      "strokeColor": "white",
+      "backgroundColor": "black",
+      "width": 30,
+      "height": 11,
+      "seed": 2092236325,
+      "groupIds": [
+        "yYHwRkiP8DjDNOLMiDEOf"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201818080,
+      "link": null,
+      "locked": false,
+      "fontSize": 8.40747776981498,
+      "fontFamily": 1,
+      "text": "Button",
+      "baseline": 8,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Button"
+    },
+    {
+      "type": "line",
+      "version": 381,
+      "versionNonce": 785810380,
+      "isDeleted": false,
+      "id": "Se7oNgj0svdXs3StvvJ6i",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 782.3734546250256,
+      "y": 687.8981023134161,
+      "strokeColor": "white",
+      "backgroundColor": "transparent",
+      "width": 9.039088107826217,
+      "height": 6.5411285869162725,
+      "seed": 1224276683,
+      "groupIds": [
+        "yYHwRkiP8DjDNOLMiDEOf"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201818080,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          3.264881713992736,
+          3.515817032745815
+        ],
+        [
+          9.039088107826217,
+          -3.0253115541704574
+        ]
+      ]
+    }
+  ],
+  "id": "WrWJgbdAwsru-nVvxjtEK",
+  "created": 1664201819175,
+  "name": "Confirm button (text+icon)"
+}

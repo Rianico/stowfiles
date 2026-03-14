@@ -1,0 +1,92 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "ellipse",
+      "version": 267,
+      "versionNonce": 388481140,
+      "isDeleted": false,
+      "id": "qiGYsdheDglReC37H2Tx6",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 630.3465940176231,
+      "y": 290.2061004078862,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 1.4016848141091032,
+      "height": 1.4016848141091032,
+      "seed": 347757542,
+      "groupIds": [
+        "_lBfpclnV9X2MFdTH4DDq"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "ellipse",
+      "version": 307,
+      "versionNonce": 545894604,
+      "isDeleted": false,
+      "id": "xRfvuUSltwNeb0nS9DbES",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 630.3465940176231,
+      "y": 293.2641006949349,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 1.4016848141091032,
+      "height": 1.4016848141091032,
+      "seed": 1872117114,
+      "groupIds": [
+        "_lBfpclnV9X2MFdTH4DDq"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "ellipse",
+      "version": 349,
+      "versionNonce": 1254068724,
+      "isDeleted": false,
+      "id": "xRQLx-AMf6sgfih_Y6kz8",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 630.3465940176231,
+      "y": 296.3758421811601,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 1.4016848141091032,
+      "height": 1.4016848141091032,
+      "seed": 705818406,
+      "groupIds": [
+        "_lBfpclnV9X2MFdTH4DDq"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false
+    }
+  ],
+  "id": "jgiQg-LWcTCTZqQrEjvbf",
+  "created": 1664201933509,
+  "name": "Vertical options"
+}

@@ -1,0 +1,176 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "line",
+      "version": 402,
+      "versionNonce": 1884758900,
+      "isDeleted": false,
+      "id": "qoSRte04dX6nWQ_PzxHFl",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 750.8739967383107,
+      "y": 265.788154509811,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 121582758,
+      "groupIds": [
+        "9_QftTazZLT9CvwkPXIJm",
+        "2C_RhLabvvIjNtaRTquQN"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201923971,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 580,
+      "versionNonce": 1052114380,
+      "isDeleted": false,
+      "id": "XdDrVHEBdqef4vHYrvtR_",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 750.8739967383107,
+      "y": 268.1423706516983,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 1995985082,
+      "groupIds": [
+        "9_QftTazZLT9CvwkPXIJm",
+        "2C_RhLabvvIjNtaRTquQN"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201923971,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 697,
+      "versionNonce": 772445428,
+      "isDeleted": false,
+      "id": "XyVY66Yy-fi70tydsaboK",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 750.8739967383107,
+      "y": 270.57218265188993,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 1342025702,
+      "groupIds": [
+        "9_QftTazZLT9CvwkPXIJm",
+        "2C_RhLabvvIjNtaRTquQN"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201923971,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "text",
+      "version": 208,
+      "versionNonce": 2102158412,
+      "isDeleted": false,
+      "id": "BZlAdrSx-YvggNH8ZTf7p",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 763.5906151216459,
+      "y": 262.3813208853217,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 22.25244742823835,
+      "height": 11.411511501660698,
+      "seed": 1588952954,
+      "groupIds": [
+        "2C_RhLabvvIjNtaRTquQN"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201923971,
+      "link": null,
+      "locked": false,
+      "fontSize": 9.129209201328562,
+      "fontFamily": 1,
+      "text": "Menu",
+      "baseline": 7.411511501660698,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Menu"
+    }
+  ],
+  "id": "L7rPu0IAo6vb9a7sKsZx5",
+  "created": 1664201925222,
+  "name": "Hamburger menu (text+icon)"
+}

@@ -1,0 +1,64 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 175,
+      "versionNonce": 916626804,
+      "isDeleted": false,
+      "id": "xWiiayr9oSoXZ-zdaFPuS",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 845.5531346393134,
+      "y": 322.67332646068587,
+      "strokeColor": "#000000",
+      "backgroundColor": "#ced4da",
+      "width": 26.59269018590203,
+      "height": 13.31857546642027,
+      "seed": 365910202,
+      "groupIds": [
+        "sLksS55alFMLn2rxS5I7f"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201998459,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "rectangle",
+      "version": 213,
+      "versionNonce": 1886856140,
+      "isDeleted": false,
+      "id": "BagqfsBucoofDjZl_cHDH",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 845.563229708901,
+      "y": 322.7040529532242,
+      "strokeColor": "#000000",
+      "backgroundColor": "white",
+      "width": 13.257122481343568,
+      "height": 13.257122481343568,
+      "seed": 1572775034,
+      "groupIds": [
+        "sLksS55alFMLn2rxS5I7f"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201998459,
+      "link": null,
+      "locked": false
+    }
+  ],
+  "id": "FcNIeYcEkQW6t0s2algEZ",
+  "created": 1664202000174,
+  "name": "Boxed toggle (OFF)"
+}

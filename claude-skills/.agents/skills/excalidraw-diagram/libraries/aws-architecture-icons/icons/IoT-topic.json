@@ -1,0 +1,360 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "text",
+      "version": 2493,
+      "versionNonce": 946691008,
+      "index": "c1cl",
+      "isDeleted": false,
+      "id": "0x7FSVmGZpv_AQrm1HJOA",
+      "fillStyle": "hachure",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1847.7871528459782,
+      "y": 3168.1784991394757,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 94.7199935913086,
+      "height": 24,
+      "seed": 427901218,
+      "groupIds": [
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "fontSize": 20,
+      "fontFamily": 1,
+      "text": "IoT topic",
+      "textAlign": "center",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "IoT topic",
+      "autoResize": true,
+      "lineHeight": 1.2
+    },
+    {
+      "type": "line",
+      "version": 5239,
+      "versionNonce": 1103881152,
+      "index": "c1cm",
+      "isDeleted": false,
+      "id": "EtxGHhwD6xgpUGbtKCRDP",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1880.087758289506,
+      "y": 3129.7389260708765,
+      "strokeColor": "#40c057",
+      "backgroundColor": "transparent",
+      "width": 30.16103626554741,
+      "height": 36.05757869908407,
+      "seed": 2019314402,
+      "groupIds": [
+        "NxSIFtClp4I928_AgaYSs",
+        "2NOLaTqM1JW8ULsT8hw8I",
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": {
+        "type": 2
+      },
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          26.305974678224175
+        ],
+        [
+          0.5284108273716295,
+          31.93307303417044
+        ],
+        [
+          4.155637356949141,
+          34.00055638907239
+        ],
+        [
+          9.588354023879615,
+          35.635392243300586
+        ],
+        [
+          15.381647073178687,
+          36.05757869908407
+        ],
+        [
+          20.327752524948643,
+          35.636630676168146
+        ],
+        [
+          24.96681613660926,
+          34.59600624096503
+        ],
+        [
+          29.593933429473587,
+          31.71130065083299
+        ],
+        [
+          29.910234978086713,
+          26.305974678224175
+        ],
+        [
+          30.16103626554741,
+          0.30904421342074784
+        ],
+        [
+          29.074905147621394,
+          1.4011629818805886
+        ],
+        [
+          26.03123733647476,
+          2.947000022310931
+        ],
+        [
+          20.589455804698446,
+          4.622753045638092
+        ],
+        [
+          14.590549514399754,
+          4.939654013131076
+        ],
+        [
+          8.121301718389077,
+          4.245651594096216
+        ],
+        [
+          3.5497648430969093,
+          2.617794798133218
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 267,
+      "versionNonce": 773417920,
+      "index": "c1cn",
+      "isDeleted": false,
+      "id": "EmmrPetwvQ65HSxRN_pB2",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1880.0088472015768,
+      "y": 3129.9828845060715,
+      "strokeColor": "#40c057",
+      "backgroundColor": "transparent",
+      "width": 2.9975492176413354,
+      "height": 3.1656631615460356,
+      "seed": 122823138,
+      "groupIds": [
+        "NxSIFtClp4I928_AgaYSs",
+        "2NOLaTqM1JW8ULsT8hw8I",
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          2.9975492176413354,
+          -3.1656631615460356
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 241,
+      "versionNonce": 1198912448,
+      "index": "c1co",
+      "isDeleted": false,
+      "id": "AuKBV2YGoPC8czGvxxO2p",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1907.2635985181926,
+      "y": 3126.565050428668,
+      "strokeColor": "#40c057",
+      "backgroundColor": "transparent",
+      "width": 2.5854768385413536,
+      "height": 1.779689206995954,
+      "seed": 1673741566,
+      "groupIds": [
+        "NxSIFtClp4I928_AgaYSs",
+        "2NOLaTqM1JW8ULsT8hw8I",
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          2.5854768385413536,
+          1.779689206995954
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 275,
+      "versionNonce": 335641536,
+      "index": "c1cp",
+      "isDeleted": false,
+      "id": "LI8LmZb8fCO41LPPbhwyr",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1886.7834809323672,
+      "y": 3129.4991688178316,
+      "strokeColor": "#40c057",
+      "backgroundColor": "transparent",
+      "width": 16.727337418530624,
+      "height": 8.65786811109865,
+      "seed": 127385634,
+      "groupIds": [
+        "5KxkZvp5pBVGSnABKcO13",
+        "2NOLaTqM1JW8ULsT8hw8I",
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          -8.65786811109865
+        ],
+        [
+          16.727337418530624,
+          -8.65786811109865
+        ],
+        [
+          16.727337418530624,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 309,
+      "versionNonce": 1440482240,
+      "index": "c1cq",
+      "isDeleted": false,
+      "id": "FygL1QZNFq1w2Q7qvigZv",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "angle": 0,
+      "x": 1887.0356518482245,
+      "y": 3121.3456425384475,
+      "strokeColor": "#40c057",
+      "backgroundColor": "transparent",
+      "width": 16.05488164291114,
+      "height": 6.5564438122883075,
+      "seed": 166578302,
+      "groupIds": [
+        "5KxkZvp5pBVGSnABKcO13",
+        "2NOLaTqM1JW8ULsT8hw8I",
+        "Kx6gByjXLIAJMqGf3IyJx"
+      ],
+      "frameId": null,
+      "roundness": null,
+      "boundElements": [],
+      "updated": 1730995483537,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          7.817298391574695,
+          6.5564438122883075
+        ],
+        [
+          16.05488164291114,
+          0
+        ]
+      ]
+    }
+  ],
+  "id": "oCvtJT8TDXlfG3pPZIyLo",
+  "created": 1731064706831,
+  "name": "IoT topic"
+}

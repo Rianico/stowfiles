@@ -1,0 +1,124 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 491,
+      "versionNonce": 1150513908,
+      "isDeleted": false,
+      "id": "BnLZ0DVtd0NcKaf9PyO7y",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 711.1968235966121,
+      "y": 677.7505879032485,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 21.739903411646324,
+      "height": 21.739903411646324,
+      "seed": 403513547,
+      "groupIds": [
+        "z8pY0kUe2rbyDv_CFcPQ9"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201805817,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "line",
+      "version": 108,
+      "versionNonce": 382232140,
+      "isDeleted": false,
+      "id": "1eRoElveRa_DLlur1TAOd",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 717.7949753593282,
+      "y": 692.2165721835966,
+      "strokeColor": "#000000",
+      "backgroundColor": "black",
+      "width": 8.17074705793732,
+      "height": 8.151973455743189,
+      "seed": 692435211,
+      "groupIds": [
+        "ng9-57fVSTpsbAPSvAwtd",
+        "z8pY0kUe2rbyDv_CFcPQ9"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201805817,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          8.17074705793732,
+          -8.151973455743189
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 198,
+      "versionNonce": 1695609972,
+      "isDeleted": false,
+      "id": "9y-TxXtmg-Im5D1APB8um",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 725.9657224172656,
+      "y": 692.2165721835966,
+      "strokeColor": "#000000",
+      "backgroundColor": "black",
+      "width": 8.17074705793732,
+      "height": 8.151973455743189,
+      "seed": 1104572709,
+      "groupIds": [
+        "ng9-57fVSTpsbAPSvAwtd",
+        "z8pY0kUe2rbyDv_CFcPQ9"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201805817,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -8.17074705793732,
+          -8.151973455743189
+        ]
+      ]
+    }
+  ],
+  "id": "w3Xx60NICVIbvJInApBiy",
+  "created": 1664201806952,
+  "name": "Boxed reject button (icon only)"
+}

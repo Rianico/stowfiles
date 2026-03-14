@@ -1,0 +1,64 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 148,
+      "versionNonce": 1016908236,
+      "isDeleted": false,
+      "id": "IvhC0UfiWFVuIMr0dPWXo",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 747.9865545388329,
+      "y": 321.00273342518904,
+      "strokeColor": "#000000",
+      "backgroundColor": "black",
+      "width": 26.59269018590203,
+      "height": 13.31857546642027,
+      "seed": 138224294,
+      "groupIds": [
+        "8nZ2l4Y0Ngesy3WMTD_pa"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201964089,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "ellipse",
+      "version": 229,
+      "versionNonce": 2143717620,
+      "isDeleted": false,
+      "id": "TYy8hJcHbb_wEpzIqSdGS",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 762.1409051015395,
+      "y": 319.02066511449414,
+      "strokeColor": "#000000",
+      "backgroundColor": "white",
+      "width": 17.28271208781007,
+      "height": 17.28271208781007,
+      "seed": 2140684986,
+      "groupIds": [
+        "8nZ2l4Y0Ngesy3WMTD_pa"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201964089,
+      "link": null,
+      "locked": false
+    }
+  ],
+  "id": "xq13i3QCaEhifAvZ6jiZ1",
+  "created": 1664201965239,
+  "name": "Rounded toggle (ON)"
+}

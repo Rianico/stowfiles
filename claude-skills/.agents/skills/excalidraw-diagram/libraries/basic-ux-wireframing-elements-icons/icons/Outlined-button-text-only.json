@@ -1,0 +1,72 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 296,
+      "versionNonce": 398572404,
+      "isDeleted": false,
+      "id": "e0EouFVhMld3123o_-LE5",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 168.44020784276466,
+      "y": 622.7823497660869,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 92.71213711339328,
+      "height": 21.93650211586032,
+      "seed": 1720304166,
+      "groupIds": [
+        "xMZlHsCxfQX5SSKaR1ooT"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201532404,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "text",
+      "version": 397,
+      "versionNonce": 406570444,
+      "isDeleted": false,
+      "id": "RPMQPzcE1dXcf6EKxbDEn",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 198.2962763994613,
+      "y": 627.7506008240172,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 33,
+      "height": 12,
+      "seed": 1904696122,
+      "groupIds": [
+        "xMZlHsCxfQX5SSKaR1ooT"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201597751,
+      "link": null,
+      "locked": false,
+      "fontSize": 9.155874303902381,
+      "fontFamily": 1,
+      "text": "Button",
+      "baseline": 8,
+      "textAlign": "center",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Button"
+    }
+  ],
+  "id": "BVYXFIq7-B-oWXk3Sk2xL",
+  "created": 1664201601360,
+  "name": "Outlined button (text only)"
+}

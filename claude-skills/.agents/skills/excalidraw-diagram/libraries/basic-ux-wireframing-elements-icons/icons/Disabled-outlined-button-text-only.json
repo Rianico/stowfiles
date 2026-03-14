@@ -1,0 +1,72 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "rectangle",
+      "version": 353,
+      "versionNonce": 2021948748,
+      "isDeleted": false,
+      "id": "pgAKfJ0cYUJaJWNaCo_bs",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 168.28210637984367,
+      "y": 657.3210167492706,
+      "strokeColor": "#ced4da",
+      "backgroundColor": "transparent",
+      "width": 92.71213711339328,
+      "height": 21.93650211586032,
+      "seed": 1638895866,
+      "groupIds": [
+        "3XHI1np5lANGnIihe7XBl"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201627561,
+      "link": null,
+      "locked": false
+    },
+    {
+      "type": "text",
+      "version": 455,
+      "versionNonce": 503696756,
+      "isDeleted": false,
+      "id": "JYguq49fYg-9y8ZVWvCzc",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 198.13817493654028,
+      "y": 662.2892678072009,
+      "strokeColor": "#ced4da",
+      "backgroundColor": "transparent",
+      "width": 33,
+      "height": 12,
+      "seed": 2139722662,
+      "groupIds": [
+        "3XHI1np5lANGnIihe7XBl"
+      ],
+      "strokeSharpness": "round",
+      "boundElements": [],
+      "updated": 1664201627561,
+      "link": null,
+      "locked": false,
+      "fontSize": 9.155874303902381,
+      "fontFamily": 1,
+      "text": "Button",
+      "baseline": 8,
+      "textAlign": "center",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Button"
+    }
+  ],
+  "id": "RH4a2LNWcCl0HcwSWBHWy",
+  "created": 1664201629051,
+  "name": "Disabled outlined button (text only)"
+}

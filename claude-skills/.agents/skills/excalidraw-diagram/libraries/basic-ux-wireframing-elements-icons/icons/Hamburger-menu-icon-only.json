@@ -1,0 +1,137 @@
+{
+  "status": "published",
+  "elements": [
+    {
+      "type": "line",
+      "version": 359,
+      "versionNonce": 812742348,
+      "isDeleted": false,
+      "id": "tMNPcWoWQ_VtnbhQyClEg",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 654.813491893064,
+      "y": 264.7137607501066,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 490270586,
+      "groupIds": [
+        "i2pSCHUBh4pcyVAFqJWMi"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 537,
+      "versionNonce": 1654598644,
+      "isDeleted": false,
+      "id": "mJQKoWSOMW0R1VxIJiNU7",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 654.813491893064,
+      "y": 267.06797689199385,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 581655846,
+      "groupIds": [
+        "i2pSCHUBh4pcyVAFqJWMi"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "line",
+      "version": 654,
+      "versionNonce": 2066791756,
+      "isDeleted": false,
+      "id": "87VVSB2dMIvDsx7Q-ipJ2",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 654.813491893064,
+      "y": 269.4977888921855,
+      "strokeColor": "#000000",
+      "backgroundColor": "transparent",
+      "width": 5.900342373672803,
+      "height": 0,
+      "seed": 908128314,
+      "groupIds": [
+        "i2pSCHUBh4pcyVAFqJWMi"
+      ],
+      "strokeSharpness": "sharp",
+      "boundElements": [],
+      "updated": 1664201861262,
+      "link": null,
+      "locked": false,
+      "startBinding": null,
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          5.900342373672803,
+          0
+        ]
+      ]
+    }
+  ],
+  "id": "vImzKQ5X1SKZDllgSLClb",
+  "created": 1664201915359,
+  "name": "Hamburger menu (icon only)"
+}
