@@ -13,8 +13,26 @@ metals_config.settings = {
 -- docs about this
 -- metals_config.init_options.statusBarProvider = "on"
 
--- Example if you are using cmp how to make sure the correct capabilities for snippets are set
--- metals_config.capabilities = require("cmp_nvim_lsp").default_capabilities()
+-- Get capabilities for completion plugins
+local has_blink, blink_cmp = pcall(require, "blink.cmp")
+
+if has_blink then
+  -- Try to use blink.cmp's native LSP capabilities if available
+  if blink_cmp.get_lsp_capabilities then
+    metals_config.capabilities = blink_cmp.get_lsp_capabilities()
+  end
+else
+  -- Fallback to nvim-cmp if blink.cmp is not available
+  local has_cmp, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+  if has_cmp then
+    metals_config.capabilities = cmp_lsp.default_capabilities()
+  end
+end
+
+-- Ensure snippet support is enabled
+if metals_config.capabilities then
+  metals_config.capabilities.textDocument.completion.completionItem.snippetSupport = true
+end
 
 -- Debug settings if you're using nvim-dap
 -- local dap = require("dap")
