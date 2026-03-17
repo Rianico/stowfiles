@@ -83,8 +83,9 @@ To set up this environment:
 4. Install additional tools mentioned in the original README:
    ```bash
    # Install essential tools
-   brew install bat eza zoxide fzf tldr fd ripgrep broot pass
+   brew install bat eza zoxide fzf tldr fd ripgrep yazi pass gromgit/brewtils/taproom
    brew install switchaudio-osx
+   brew install claude-code lazygit models llmfit
 
    # Install aerospace (macOS window manager)
    brew install --cask nikitabobko/tap/aerospace
