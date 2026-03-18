@@ -163,6 +163,7 @@ source /Users/zhengxk/.tools/merge_video.zsh
 
 # Created by `pipx` on 2025-02-11 04:33:06
 export PATH="$PATH:/Users/zhengxk/.local/bin"
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # abbr behavior
 ABBR_QUIET=1
