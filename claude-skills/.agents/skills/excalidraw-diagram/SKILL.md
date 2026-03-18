@@ -1,35 +1,25 @@
 ---
 name: excalidraw-diagram
-description: Generate Excalidraw diagrams from text content. Supports three output modes - Obsidian (.md), Standard (.excalidraw), and Animated (.excalidraw with animation order). Triggers on "Excalidraw", "draw", "flowchart", "mindmap", "visualization", "diagram", "standard Excalidraw", "standard excalidraw", "Excalidraw animation", "animated chart", "animate".
+description: Generate Excalidraw diagrams from text content. Triggers on "Excalidraw", "draw", "flowchart", "mindmap", "visualization", "diagram".
 ---
 
 # Excalidraw Diagram Generator
 
-Create Excalidraw diagrams from text content with multiple output formats. If there are any ambiguous part, confirm with users at first.
+Create Excalidraw diagrams from text content for Obsidian. If there are any ambiguous parts, confirm with users first.
 
-## Output Modes
+## Output Format
 
-Select output mode based on user trigger words:
-
-| Trigger Word | Output Mode | File Format | Purpose |
-|--------|----------|----------|------|
-| `Excalidraw`, `draw`, `flowchart`, `mindmap` | **Obsidian** (default) | `.md` | Open directly in Obsidian |
-| `standard Excalidraw`, `standard excalidraw` | **Standard** | `.excalidraw` | Open/edit/share in excalidraw.com |
-| `Excalidraw animation`, `animated chart`, `animate` | **Animated** | `.excalidraw` | Drag to excalidraw-animate to generate animation |
+All diagrams are generated in Obsidian format (`.md` files) that can be opened directly in Obsidian with the Excalidraw plugin.
 
 ## Workflow
 
-1. **Detect output mode** from trigger words (see Output Modes table above)
-2. Analyze content - identify concepts, relationships, hierarchy
-3. Choose diagram type (see Diagram Types below)
-4. Generate Excalidraw JSON (add animation order if Animated mode)
-5. Output in correct format based on mode
-6. **Automatically save to current working directory**
-7. Notify user with file path and usage instructions
+1. Analyze content - identify concepts, relationships, hierarchy
+2. Choose diagram type (see Diagram Types below)
+3. Generate Excalidraw JSON
+4. **Automatically save to current working directory**
+5. Notify user with file path and usage instructions
 
-## Output Formats
-
-### Mode 1: Obsidian Format (Default)
+## Format Specification
 
 **Strictly output according to the following structure, no modifications allowed:**
 
@@ -57,60 +47,7 @@ tags: [excalidraw]
 - JSON must be surrounded by `%%` markers
 - Cannot use any other frontmatter settings besides `excalidraw-plugin: parsed`
 - **File extension**: `.md`
-
-### Mode 2: Standard Excalidraw Format
-
-Directly output pure JSON file that can be opened in excalidraw.com:
-
-```json
-{
-  "type": "excalidraw",
-  "version": 2,
-  "source": "https://excalidraw.com",
-  "elements": [...],
-  "appState": {
-    "gridSize": null,
-    "viewBackgroundColor": "#ffffff"
-  },
-  "files": {}
-}
-```
-
-**Key Points:**
-- `source` uses `https://excalidraw.com` (not Obsidian plugin)
-- Pure JSON, no Markdown wrapper
-- **File extension**: `.excalidraw`
-
-### Mode 3: Animated Excalidraw Format
-
-Same as Standard format, but each element adds `customData.animate` field to control animation order:
-
-```json
-{
-  "id": "element-1",
-  "type": "rectangle",
-  "customData": {
-    "animate": {
-      "order": 1,
-      "duration": 500
-    }
-  },
-  ...other standard fields
-}
-```
-
-**Animation Order Rules:**
-- `order`: Animation playback order (1, 2, 3...), smaller numbers appear first
-- `duration`: Element drawing duration (milliseconds), default 500
-- Elements with the same `order` appear simultaneously
-- Recommended order: Title → Main frame → Connection lines → Detail text
-
-**Usage Method:**
-1. Generate `.excalidraw` file
-2. Drag to https://dai-shi.github.io/excalidraw-animate/
-3. Click Animate to preview, then export SVG or WebM
-
-**File extension**: `.excalidraw`
+- **File naming**: `[theme].[type].md` (e.g., `business-model.relationship.md`)
 
 ---
 
@@ -156,6 +93,69 @@ Choose appropriate chart forms to enhance comprehension and visual appeal.
 - **Graphic elements**: Appropriately use rectangles, circles, arrows, etc. to organize information
 - **Prohibited Emoji**: Do not use any emoji symbols in chart text, use simple graphics (circles, squares, arrows) or color differentiation for visual markers
 
+### Text Inside Shape Alignment
+
+When a text element is positioned inside a shape element (rectangle, ellipse, diamond), they must be horizontally centered relative to each other:
+
+**Horizontal center alignment formula:**
+- Shape center: `shapeCenterX = shape.x + shape.width / 2`
+- Text position: `text.x = shapeCenterX - estimatedTextWidth / 2`
+- Where `estimatedTextWidth = text.length * fontSize * 0.5` (CJK: `* 1.0`)
+
+**Vertical positioning:**
+- For single-line text: `text.y = shape.y + shape.height / 2` (approximately center)
+- For multi-line text: adjust `text.y` to account for total text height
+
+**Quick reference:**
+| Shape | Shape Center X | Text X |
+|-------|---------------|--------|
+| Rectangle at (100, 100) w=200 | 100 + 200/2 = 200 | 200 - textWidth/2 |
+| Ellipse at (100, 100) w=150 | 100 + 150/2 = 175 | 175 - textWidth/2 |
+| Diamond at (100, 100) w=120 | 100 + 120/2 = 160 | 160 - textWidth/2 |
+
+**Verification example (from real mindmap):**
+```
+Shape: x=1272.5, width=301.9 → centerX = 1423.45
+Text: "Distributed system troubleshooting" (34 chars, fontSize 16)
+estimatedWidth = 34 * 16 * 0.5 = 272
+text.x = 1423.45 - 272/2 = 1287.45 ≈ 1286.3 ✓
+```
+
+### Element Sizing Guide
+
+**Shape width calculation:**
+- Formula: `shape.width = text.length * fontSize * 0.5 + 40` (minimum, for CJK: `* 1.0 + 40`)
+- Recommended minimum: 120px for readability
+- Shape width should provide 20-30px padding on each side of text
+
+**Standard shape sizes:**
+| Type | Width | Height | Use Case |
+|------|-------|--------|----------|
+| Small node | 100-120px | 36px | Simple labels ("point1") |
+| Medium node | 160-180px | 50-57px | Headers, categories |
+| Large node | 280-320px | 36-40px | Long titles |
+| Ellipse (main) | 280-300px | 80-90px | Central topic |
+
+**Shape height guidelines:**
+- Single-line text: 36px minimum
+- Emphasis/main topics: 50-57px
+- Add 20px per additional line of text
+
+### Mindmap Layout Spacing
+
+**Hierarchical spacing (parent → children):**
+- Horizontal gap: 50-90px between parent and child shapes
+- Arrow length: 45-133px (adjust based on hierarchy depth)
+
+**Sibling spacing:**
+- Vertical gap: 30-70px between sibling nodes
+- Group related items with 20-30px spacing
+
+**Canvas organization:**
+- Root/central topic: center-left (~470-500px from left edge)
+- Level 1 children: 300-400px to the right of parent
+- Level 2+ children: continue branching rightward with 150-200px spacing
+
 ### Color Palette
 
 **Text color (strokeColor for text):**
@@ -197,24 +197,11 @@ Reference: [references/excalidraw-schema.md](references/excalidraw-schema.md)
 
 ## JSON Structure
 
-**Obsidian mode:**
 ```json
 {
   "type": "excalidraw",
   "version": 2,
   "source": "https://github.com/zsviczian/obsidian-excalidraw-plugin",
-  "elements": [...],
-  "appState": { "gridSize": null, "viewBackgroundColor": "#ffffff" },
-  "files": {}
-}
-```
-
-**Standard / Animated mode:**
-```json
-{
-  "type": "excalidraw",
-  "version": 2,
-  "source": "https://excalidraw.com",
   "elements": [...],
   "appState": { "gridSize": null, "viewBackgroundColor": "#ffffff" },
   "files": {}
@@ -268,20 +255,7 @@ Text elements add:
 }
 ```
 
-**Animated mode additionally adds** `customData` field:
-```json
-{
-  "id": "title-1",
-  "type": "text",
-  "customData": {
-    "animate": {
-      "order": 1,
-      "duration": 500
-    }
-  },
-  ...other fields
-}
-```
+**Note:** For automatic centering, bind text to shape using `containerId` (see [Element Binding](references/excalidraw-schema.md#element-binding)). For independent positioning, use the center alignment formula above.
 
 See [references/excalidraw-schema.md](references/excalidraw-schema.md) for all element types.
 
@@ -361,6 +335,7 @@ Text elements (type: "text") need additional properties (do NOT include `rawText
 ## Common Mistakes to Avoid
 
 - **Text offset** — Independent text elements `x` is the left edge, not the center. Must calculate manually with centering formula, otherwise text will drift to one side
+- **Text not centered in shape** — When text is inside a shape, align horizontal centers: `text.x = (shape.x + shape.width/2) - textWidth/2`
 - **Element overlap** — Elements with similar y coordinates tend to stack. Check before placing new elements that there is at least 20px spacing from surrounding elements
 - **Insufficient canvas padding** — Content shouldn't touch the edges of the canvas. Leave 50-80px padding on all sides
 - **Title not centered relative to chart** — Title should be centered on the overall width of the chart below, not fixed at x=0
@@ -380,13 +355,7 @@ When generating Excalidraw charts, **must automatically perform the following st
 
 #### 2. Generate meaningful filename
 
-According to output mode select file extension:
-
-| Mode | Filename format | Example |
-|------|-----------|------|
-| Obsidian | `[theme].[type].md` | `business-model.relationship.md` |
-| Standard | `[theme].[type].excalidraw` | `business-model.relationship.excalidraw` |
-| Animated | `[theme].[type].animate.excalidraw` | `business-model.relationship.animate.excalidraw` |
+Format: `[theme].[type].md` (e.g., `business-model.relationship.md`)
 
 
 #### 3. Use Write tool to automatically save file
@@ -430,9 +399,8 @@ Report to user:
 - Explanation of design choices (what type of chart was chosen, why)
 - Whether adjustments or modifications are needed
 
-### Example Output Messages
+### Example Output Message
 
-**Obsidian mode:**
 ```
 Excalidraw chart has been generated!
 
@@ -442,31 +410,4 @@ Usage:
 1. Open this file in Obsidian
 2. Click the MORE OPTIONS menu in the upper right corner
 3. Select Switch to EXCALIDRAW VIEW
-```
-
-**Standard mode:**
-```
-Excalidraw chart has been generated!
-
-Saved location: business-model.relationship.excalidraw
-
-Usage:
-1. Open https://excalidraw.com
-2. Click upper left menu → Open → Select this file
-3. Or drag and drop the file directly onto the excalidraw.com page
-```
-
-**Animated mode:**
-```
-Excalidraw animated chart has been generated!
-
-Saved location: business-model.relationship.animate.excalidraw
-
-Animation sequence: Title(1) → Main frame(2-4) → Connection lines(5-7) → Explanation text(8-10)
-
-Generate animation:
-1. Open https://dai-shi.github.io/excalidraw-animate/
-2. Click Load File and select this file
-3. Preview animation effects
-4. Click Export to export SVG or WebM
 ```
