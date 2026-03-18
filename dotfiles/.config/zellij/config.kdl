@@ -57,10 +57,6 @@ keybinds clear-defaults=true {
         bind "+" { Resize "Increase"; }
         bind "-" { Resize "Decrease"; }
         bind "=" { Resize "Increase"; }
-        bind "H" { Resize "Decrease left"; }
-        bind "J" { Resize "Decrease down"; }
-        bind "K" { Resize "Decrease up"; }
-        bind "L" { Resize "Decrease right"; }
         bind "h" { Resize "Increase left"; }
         bind "j" { Resize "Increase down"; }
         bind "k" { Resize "Increase up"; }
@@ -139,6 +135,10 @@ keybinds clear-defaults=true {
         bind "Alt down" { MoveFocus "down"; }
         bind "Alt up" { MoveFocus "up"; }
         bind "Alt right" { MoveFocusOrTab "right"; }
+        bind "Alt h" { MoveFocusOrTab "left"; }
+        bind "Alt j" { MoveFocus "down"; }
+        bind "Alt k" { MoveFocus "up"; }
+        bind "Alt l" { MoveFocusOrTab "right"; }
         // Tab movement
         bind "Alt H" { GoToPreviousTab; }
         bind "Alt L" { GoToNextTab; }
