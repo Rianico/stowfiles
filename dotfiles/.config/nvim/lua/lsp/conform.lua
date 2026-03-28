@@ -19,6 +19,7 @@ conform.setup({
     rust = { "rustfmt", lsp_format = "fallback" },
     toml = { "taplo" },
     json = { "prettier" },
+    kdl = { "kdlfmt" },
   },
   default_format_opts = {
     lsp_format = "fallback",

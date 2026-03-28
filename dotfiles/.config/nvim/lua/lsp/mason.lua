@@ -209,4 +209,5 @@ vim.lsp.enable({
   "slint_lsp",
   "lua_ls",
   "gopls",
+  "yamlls",
 })
