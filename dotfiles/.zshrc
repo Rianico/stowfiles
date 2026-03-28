@@ -56,6 +56,10 @@ zinit snippet OMZP::git
 
 zinit snippet OMZP::command-not-found
 
+## zoxide
+ZOXIDE_CMD_OVERRIDE='cd'
+zinit snippet OMZP::zoxide
+
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 # prefix: ctrl-g, f: files, b: branches, t: tags, r: remotes
@@ -172,6 +176,15 @@ if [ ! -s "$HOME/.config/zsh-abbr/user-abbreviations" ]; then
   abbr import-aliases
 fi
 
-## zoxide
-ZOXIDE_CMD_OVERRIDE='cd'
-zinit snippet OMZP::zoxide
+# q exit and change cwd, while Q just exit
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+
+_gtr_init="${XDG_CACHE_HOME:-$HOME/.cache}/gtr/init-gtr.zsh"
+[[ -f "$_gtr_init" ]] || eval "$(git gtr init zsh)" || true
+source "$_gtr_init" 2>/dev/null || true; unset _gtr_init
