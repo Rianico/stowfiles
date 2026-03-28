@@ -157,8 +157,6 @@ export DOCKER_DEFAULT_PLATFORM=linux/arm64
 
 export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897
 
-source /Users/zhengxk/.config/broot/launcher/bash/br
-
 source /Users/zhengxk/.tools/merge_video.zsh
 
 # Created by `pipx` on 2025-02-11 04:33:06
