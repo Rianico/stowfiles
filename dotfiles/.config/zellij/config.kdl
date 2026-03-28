@@ -72,6 +72,8 @@ keybinds clear-defaults=true {
         bind "j" { MovePane "down"; }
         bind "k" { MovePane "up"; }
         bind "l" { MovePane "right"; }
+        bind "H" { MoveTab "left"; }
+        bind "L" { MoveTab "right"; }
         bind "m" { SwitchToMode "normal"; }
         bind "n" { MovePane; }
         bind "p" { MovePaneBackwards; }
@@ -128,7 +130,7 @@ keybinds clear-defaults=true {
         bind "Alt =" { Resize "Increase"; }
         bind "Alt [" { PreviousSwapLayout; }
         bind "Alt ]" { NextSwapLayout; }
-        bind "Alt p" { ToggleFloatingPanes; }
+        bind "Alt f" { ToggleFloatingPanes; }
         bind "Alt z" { ToggleFocusFullscreen; SwitchToMode "locked"; }
         // Pane movement
         bind "Alt left" { MoveFocusOrTab "left"; }
@@ -149,7 +151,7 @@ keybinds clear-defaults=true {
     }
     shared_except "locked" "renametab" "renamepane" {
         bind "Ctrl l" { SwitchToMode "locked"; }
-        bind "Ctrl q" { Quit; }
+        // bind "Ctrl q" { Quit; }
     }
     shared_except "locked" "entersearch" {
         bind "enter" { SwitchToMode "locked"; }
@@ -212,7 +214,10 @@ keybinds clear-defaults=true {
 // changing these requires a restart to take effect
 plugins {
     about location="zellij:about"
-    compact-bar location="zellij:compact-bar"
+    // compact-bar location="zellij:compact-bar"
+    compact-bar location="zellij:compact-bar" { // replace it with these lines
+    tooltip "" // choose a keybinding to toggle the hints
+    }
     configuration location="zellij:configuration"
     filepicker location="zellij:strider" {
         cwd "/"
@@ -268,7 +273,7 @@ default_mode "locked"
 // The name of the default layout to load on startup
 // Default: "default"
 // 
-default_layout "default"
+default_layout "compact"
  
 // The folder in which Zellij will look for layouts
 // (Requires restart)
@@ -430,3 +435,5 @@ show_startup_tips false
 // Default: true
 // 
 // show_release_notes false
+
+osc8_hyperlinks true
