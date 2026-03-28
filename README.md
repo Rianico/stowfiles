@@ -95,6 +95,19 @@ To set up this environment:
    brew install sketchybar
    brew install borders
 
+   # Install git-worktree-runner
+   brew tap coderabbitai/tap
+   brew install git-gtr
+   
+   # Install  
+   brew install rtk
+   # Install rtk for claude code, all is wrapped with rtk xxx to get filtered output
+   rtk init -g
+   rtk init --show                 # Verify installation
+   rtk gain                        # Summary stats
+   rtk discover                    # Find missed savings opportunities
+   rtk discover --all --since 7    # All projects, last 7 day
+
    # Install fonts
    brew install --cask font-hack-nerd-font
    brew install font-sf-pro
