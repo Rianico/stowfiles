@@ -115,10 +115,21 @@ To set up this environment:
    curl -L https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v1.0.16/sketchybar-app-font.ttf -o $HOME/Library/Fonts/sketchybar-app-font.ttf
    ```
 
-5. Set up Claude Code skills:
-   ```bash
-   ./claude-skills/claude-skills.sh install
-   ```
+5. Claude(Critical)
+   5. Claude (Critical)
+      ```bash
+      # Install Claude Code
+      curl -fsSL https://claude.ai/install.sh | bash
+   
+      # Add claude-hud from marketplace
+      claude plugin add jarrodwatts/claude-hud --scope user
+   
+      # Install claude-hud, refer to https://github.com/jarrodwatts/claude-hud
+      claude plygin install claude-hud@claude-hud --scope user
+      # After installation, execute the following commands in Claude to enable and setup the HUD:
+      # /claude-hud:setup - Run this command to enable the HUD
+      # /claude-hud:configure - Run this command to configure the HUD
+      ```
 
 6. Apply extra settings:
    ```bash
