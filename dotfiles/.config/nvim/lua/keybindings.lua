@@ -150,6 +150,8 @@ wk.add({
   { "go",              "<cmd>Lspsaga outline<CR>",                                                                   desc = "Symbols: Buffer" },
   { "gO",              function() Snacks.picker.lsp_workspace_symbols() end,                                         desc = "Symbols: Global" },
   { "<C-s>h",          "<cmd>lua vim.lsp.buf.signature_help()<CR>",                                                  desc = "LSP: Signature Help", mode = { "x" }, },
+  { "gn",              function() Snacks.words.jump(1, true) end,                                                    desc = "References: Jump next" },
+  { "gN",              function() Snacks.words.jump(-1, true) end,                                                   desc = "References: Jump prev" },
 
   { "z", group = "UFO" },
   { "zR", "<cmd>lua require('ufo').openAllFolds()<CR>",         desc = "UFO: Open All Folds" },
