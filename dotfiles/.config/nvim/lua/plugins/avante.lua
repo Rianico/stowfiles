@@ -12,14 +12,16 @@ local custom_vendors = {
     max_tokens = 12288,
     disable_tools = true, -- disable tools!
   },
-  hw = {
+  dashscope = {
     __inherited_from = "openai",
-    api_key_name = "HW_API_KEY",
-    endpoint = "https://infer-modelarts-cn-southwest-2.modelarts-infer.com/v1/infers/861b6827-e5ef-4fa6-90d2-5fd1b2975882",
-    model = "DeepSeek-R1",
+    api_key_name = "DASHSCOPE_API_KEY",
+    endpoint = "https://coding.dashscope.aliyuncs.com/v1",
+    model = "qwen3.5-plus",
     timeout = 30000, -- Timeout in milliseconds
-    max_tokens = 8 * 4096,
-    disable_tools = true, -- disable tools!
+    extra_request_body = {
+      temperature = 0.75,
+      max_tokens = 32768,
+    },
   },
   openrouter = {
     __inherited_from = "openai",
@@ -53,14 +55,14 @@ return {
     -- for example
     ---@alias Provider "claude" | "openai" | "azure" | "gemini" | "cohere" | "copilot" | string
     ---@type Provider
-    provider = "gemini", -- The provider used in Aider mode or in the planning phase of Cursor Planning Mode
+    provider = "dashscope", -- The provider used in Aider mode or in the planning phase of Cursor Planning Mode
     ---@alias Mode "agentic" | "legacy"
     ---@type Mode
     mode = "agentic", -- The default mode for interaction. "agentic" uses tools to automatically generate code, "legacy" uses the old planning method to generate code.
     -- WARNING: Since auto-suggestions are a high-frequency operation and therefore expensive,
     -- currently designating it as `copilot` provider is dangerous because: https://github.com/yetone/avante.nvim/issues/1048
     -- Of course, you can reduce the request frequency by increasing `suggestion.debounce`.
-    auto_suggestions_provider = "gemini",
+    auto_suggestions_provider = "dashscope",
     providers = custom_vendors,
     ---Specify the special dual_boost mode
     ---1. enabled: Whether to enable dual_boost mode. Default to false.
