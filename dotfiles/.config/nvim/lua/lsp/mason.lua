@@ -1,18 +1,13 @@
--- https://www.lazyvim.org/extras/lang/scala
-
--- vim.pack.add({
---   { src = "https://github.com/neovim/nvim-lspconfig" },
---   { src = "https://github.com/mason-org/mason.nvim" },
---   { src = "https://github.com/mason-org/mason-lspconfig.nvim" },
---   { src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
---   { src = "https://github.com/L3MoN4D3/LuaSnip" },
--- })
-
--- local default_opts = {}
--- default_opts.capabilities.textDocument.foldingRange = {
---   dynamicRegistration = false,
---   lineFoldingOnly = true,
--- }
+local function find_uv_venv_python()
+  local cwd = vim.fn.getcwd()
+  local possible_paths = { cwd .. "/.venv/bin/python", cwd .. "/.venv/Scripts/python.exe" }
+  for _, path in ipairs(possible_paths) do
+    if vim.fn.filereadable(path) == 1 then
+      return path
+    end
+  end
+  return vim.fn.exepath("python3") or vim.fn.exepath("python") or "python"
+end
 
 -- The servers that should be automatically installed
 local lsp_servers = {
@@ -38,10 +33,9 @@ local lsp_servers = {
   -- xml
   "lemminx",
   -- python
-  "pylsp",
+  "pyright",
+  -- "pylsp",
   "ruff",
-  "pyflakes",
-  "isort",
   "yapf",
 }
 
@@ -174,6 +168,19 @@ vim.lsp.config.ruff = {
   end,
 }
 
+vim.lsp.config.pyright = {
+  capabilities = vim.lsp.protocol.make_client_capabilities(),
+  settings = {
+    python = {
+      analysis = {
+        diagnosticMode = "workspace",
+        include = { "src", "tests" },
+        typeCheckingMode = "basic",
+      },
+      pythonPath = find_uv_venv_python(),
+    },
+  },
+}
 -- enable slint files recognization
 vim.cmd([[ autocmd BufEnter *.slint :setlocal filetype=slint ]])
 vim.lsp.config.slint_lsp = {
@@ -201,7 +208,8 @@ vim.lsp.config("harper-ls", {
 
 -- Use individual server setup instead of vim.lsp.enable to have control over capabilities
 vim.lsp.enable({
-  "pylsp",
+  "pyright",
+  -- "pylsp",
   "taplo",
   "asm_lsp",
   "bashls",
