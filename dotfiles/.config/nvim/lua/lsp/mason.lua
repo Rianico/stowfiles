@@ -1,17 +1,5 @@
-local function find_uv_venv_python()
-  local cwd = vim.fn.getcwd()
-  local possible_paths = { cwd .. "/.venv/bin/python", cwd .. "/.venv/Scripts/python.exe" }
-  for _, path in ipairs(possible_paths) do
-    if vim.fn.filereadable(path) == 1 then
-      return path
-    end
-  end
-  return vim.fn.exepath("python3") or vim.fn.exepath("python") or "python"
-end
-
 -- The servers that should be automatically installed
 local lsp_servers = {
-  -- lua
   "lua_ls",
   "stylua",
   "clangd",
@@ -23,8 +11,11 @@ local lsp_servers = {
   "gofumpt",
   "goimports",
   "gomodifytags",
+  -- spelling check
   "harper_ls",
+  -- java
   "jdtls",
+  -- slint
   "slint_lsp",
   -- toml
   "taplo",
@@ -33,10 +24,10 @@ local lsp_servers = {
   -- xml
   "lemminx",
   -- python
-  "pyright",
-  -- "pylsp",
+  "basedpyright",
   "ruff",
-  "yapf",
+  -- markdown
+  "markdown_oxide",
 }
 
 require("mason").setup()
@@ -86,7 +77,7 @@ end
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
 vim.lsp.config.gopls = {
-  capabilities = capabilities, -- Add capabilities to gopls
+  capabilities = capabilities,
   on_attach = function(client, _)
     if client.name == "gopls" and not client.server_capabilities.semanticTokensProvider then
       local semantic = client.config.capabilities.textDocument.semanticTokens
@@ -137,7 +128,7 @@ vim.lsp.config.gopls = {
 }
 
 vim.lsp.config.lua_ls = {
-  capabilities = capabilities, -- Add capabilities to lua_ls
+  capabilities = capabilities,
   settings = {
     Lua = {
       runtime = {
@@ -155,7 +146,7 @@ vim.lsp.config.lua_ls = {
 }
 
 vim.lsp.config.ruff = {
-  capabilities = capabilities, -- Add capabilities to ruff
+  capabilities = capabilities,
   cmd_env = { RUFF_TRACE = "messages" },
   init_options = {
     settings = {
@@ -168,34 +159,34 @@ vim.lsp.config.ruff = {
   end,
 }
 
-vim.lsp.config.pyright = {
+vim.lsp.config.basedpyright = {
   capabilities = vim.lsp.protocol.make_client_capabilities(),
   settings = {
-    python = {
+    basedpyright = {
       analysis = {
         diagnosticMode = "workspace",
-        include = { "src", "tests" },
-        typeCheckingMode = "basic",
+        inlayHints = {
+          callArgumentNames = true,
+        },
       },
-      pythonPath = find_uv_venv_python(),
     },
   },
 }
--- enable slint files recognization
+
 vim.cmd([[ autocmd BufEnter *.slint :setlocal filetype=slint ]])
 vim.lsp.config.slint_lsp = {
-  capabilities = capabilities, -- Add capabilities to slint_lsp
+  capabilities = capabilities,
   command = { "slint-lsp" },
   highlightingModeRegex = "slint",
 }
 
 vim.lsp.config.bashls = {
-  capabilities = capabilities, -- Add capabilities to bashls
+  capabilities = capabilities,
   filetypes = { "sh", "bash", "zsh" },
 }
 
 vim.lsp.config("harper-ls", {
-  capabilities = capabilities, -- Add capabilities to harper-ls
+  capabilities = capabilities,
   settings = {
     ["harper-ls"] = {
       linters = {
@@ -206,10 +197,21 @@ vim.lsp.config("harper-ls", {
   },
 })
 
+vim.lsp.config("markdown_oxide", {
+  -- Ensure that dynamicRegistration is enabled! This allows the LS to take into account actions like the
+  -- Create Unresolved File code action, resolving completions for unindexed code blocks, ...
+  capabilities = vim.tbl_deep_extend("force", capabilities, {
+    workspace = {
+      didChangeWatchedFiles = {
+        dynamicRegistration = true,
+      },
+    },
+  }),
+})
+
 -- Use individual server setup instead of vim.lsp.enable to have control over capabilities
 vim.lsp.enable({
-  "pyright",
-  -- "pylsp",
+  "basedpyright",
   "taplo",
   "asm_lsp",
   "bashls",
@@ -218,4 +220,5 @@ vim.lsp.enable({
   "lua_ls",
   "gopls",
   "yamlls",
+  "markdown_oxide",
 })

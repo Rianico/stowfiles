@@ -1,17 +1,6 @@
 vim.opt.laststatus = 3
 
-local default_provider = "gemini"
-
 local custom_vendors = {
-  ["volcano"] = {
-    __inherited_from = "openai",
-    api_key_name = "ARK_API_KEY",
-    endpoint = "https://ark.cn-beijing.volces.com/api/v3",
-    model = "ep-20250211182829-2mgqv",
-    timeout = 30000, -- Timeout in milliseconds
-    max_tokens = 12288,
-    disable_tools = true, -- disable tools!
-  },
   dashscope = {
     __inherited_from = "openai",
     api_key_name = "DASHSCOPE_API_KEY",
@@ -22,14 +11,6 @@ local custom_vendors = {
       temperature = 0.75,
       max_tokens = 32768,
     },
-  },
-  openrouter = {
-    __inherited_from = "openai",
-    api_key_name = "OPENROUTER_API_KEY",
-    endpoint = "https://openrouter.ai/api/v1",
-    model = "google/gemini-2.0-flash-001",
-    timeout = 30000,
-    disable_tools = true,
   },
 }
 
@@ -54,10 +35,8 @@ return {
     -- add any opts here
     -- for example
     ---@alias Provider "claude" | "openai" | "azure" | "gemini" | "cohere" | "copilot" | string
-    ---@type Provider
     provider = "dashscope", -- The provider used in Aider mode or in the planning phase of Cursor Planning Mode
     ---@alias Mode "agentic" | "legacy"
-    ---@type Mode
     mode = "agentic", -- The default mode for interaction. "agentic" uses tools to automatically generate code, "legacy" uses the old planning method to generate code.
     -- WARNING: Since auto-suggestions are a high-frequency operation and therefore expensive,
     -- currently designating it as `copilot` provider is dangerous because: https://github.com/yetone/avante.nvim/issues/1048

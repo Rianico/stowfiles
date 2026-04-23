@@ -57,7 +57,7 @@ wk.add({
 })
 
 wk.setup({
-  preset = "classic", -- "classic" | "modern" | "helix"
+  preset = "helix", -- "classic" | "modern" | "helix"
   win = {
     no_overlap = false,
     border = "single", -- none, single, double, shadow
@@ -142,8 +142,8 @@ wk.add({
   { "grT",             "<Cmd>Lspsaga peek_type_definition<CR>",                                                      desc = "Type: Definition Peeker" },
   { "grr",             function() Snacks.picker.lsp_references() end, nowait = true,                                 desc = "References" },
   { "gri",             function() Snacks.picker.lsp_implementations() end,                                           desc = "Goto Implementation" },
-  { "grci",            "<cmd>Telescope lsp_incoming_calls<CR>",                                                      desc = "Calls: Incoming" },
-  { "grco",            "<cmd>Telescope lsp_outgoing_calls<CR>",                                                      desc = "Calls: Outgoing" },
+  { "grci",            function() Snacks.picker.lsp_incoming_calls() end,                                            desc = "Calls: Incoming" },
+  { "grco",            function() Snacks.picker.lsp_outgoing_calls() end,                                            desc = "Calls: Outgoing" },
   { "grf",             "<Cmd>Lspsaga finder<CR>",                                                                    desc = "Finder" },
   { "grk",             "<cmd>Lspsaga hover_doc ++keep<CR>",                                                          desc = "Hover Docs+" },
   { "grh",             function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({}), {}) end,          desc = "Toggle Inlay Hint" },
@@ -397,34 +397,6 @@ pluginKeys.lspsaga_rename_keys = {
   exec = "<CR>",
   quit = "<ESC>",
 }
-
--- cmp
-pluginKeys.cmp_mapping = function(cmp, auto_select)
-  return {
-    ["<CR>"] = LazyVim.cmp.confirm({ select = auto_select }),
-    ["<S-CR>"] = LazyVim.cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-    ["<C-f>"] = cmp.mapping.scroll_docs(4),
-    ["<C-e>"] = function(fallback)
-      cmp.abort()
-      fallback()
-    end,
-    ["<S-Tab>"] = cmp.mapping(function()
-      if vim.snippet.active({ direction = -1 }) then
-        vim.schedule(function() vim.snippet.jump(-1) end)
-        return
-      end
-      return "<C-p>"
-    end, { "i", "s" }),
-    ["<Tab>"] = cmp.mapping(function()
-      if vim.snippet.active({ direction = 1 }) then
-        vim.schedule(function() vim.snippet.jump(1) end)
-        return
-      end
-      return "<C-n>"
-    end, { "i", "s" }),
-  }
-end
 
 -- For trouble
 pluginKeys.trouble_action_keys = {
