@@ -1,13 +1,13 @@
 local options = {
 
   base46 = {
-    theme = "tokyonight", -- default theme
+    theme = "oxocarbon", -- default theme
     hl_add = {},
     hl_override = {},
     integrations = {},
     changed_themes = {},
     transparency = true,
-    theme_toggle = { "tokyonight", "one_light" },
+    theme_toggle = { "oxocarbon", "one_light" },
   },
 
   ui = {

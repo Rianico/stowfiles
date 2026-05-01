@@ -41,13 +41,14 @@ config.default_cursor_style = "SteadyUnderline"
 config.animation_fps = 120
 
 -- apparance
-config.window_background_opacity = 0.983
-config.macos_window_background_blur = 10
+config.window_background_opacity = 0.95
+config.macos_window_background_blur = 20
 
 config.window_padding = {
-  left = 16,
+  left = 0,
   right = 0,
   bottom = 0,
+  top = 2,
 }
 
 config.colors = {
@@ -64,7 +65,7 @@ config.inactive_pane_hsb = {
 
 -- keybinding
 config.disable_default_key_bindings = true
-config.leader = { key = "w", mods = "META", timeout_milliseconds = 2000 }
+config.leader = { key = ";", mods = "CTRL", timeout_milliseconds = 2000 }
 
 local act = wezterm.action
 
@@ -114,7 +115,37 @@ for i = 1, 8 do
 end
 
 config.quick_select_patterns = {
-  '(?:S+(?:s+S+)*)|(?:"[^"]+")',
+  -- UUIDs (session IDs, container IDs, etc.)
+  "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+  -- Short UUIDs / Docker container IDs (12 hex chars)
+  "[0-9a-fA-F]{12}",
+  -- Git commit hashes (short: 7-8 chars, long: 40 chars)
+  "[0-9a-fA-F]{7,40}",
+  -- IP addresses
+  "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}",
+  -- URLs
+  "https?://[^\\s]+",
+  -- File paths
+  "[/~]?[a-zA-Z0-9_/.-]+/[a-zA-Z0-9_.-]+",
+  -- Session names, container names (alphanumeric, dash, underscore)
+  "[a-zA-Z][a-zA-Z0-9_-]{2,}",
+  -- Process IDs
+  "\\d{4,}",
+  -- Port numbers after colon
+  ":\\d{2,5}",
+  -- Hex colors
+  "#[0-9a-fA-F]{6}",
+  -- Base64 strings
+  "[A-Za-z0-9+/]{20,}={0,2}",
+  -- Email addresses
+  "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+  -- SSH host patterns (user@host)
+  "[a-zA-Z0-9_-]+@[a-zA-Z0-9.-]+",
+  -- Key fingerprints (SHA256:...)
+  "SHA256:[a-zA-Z0-9+/]+",
+  -- Quoted strings
+  '"[^"]+"',
+  "'[^']+'",
 }
 
 return config
