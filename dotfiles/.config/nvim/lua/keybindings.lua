@@ -228,29 +228,11 @@ wk.add({
   -- reset
   { "<c-g>r", "<Cmd>Gitsigns reset_hunk<CR>",                  desc = "Reset: Hunk" },
   { "<c-g>R", "<Cmd>Gitsigns reset_buffer<CR>",                desc = "Reset: Buffer" },
-  {
-    "]c",
-    function()
-      if vim.wo.diff then
-        return "]c"
-      end
-      vim.schedule(function() require("gitsigns").nav_hunk('next') end)
-      return "<Ignore>"
-    end,
-
-    desc = "Git: Next gitsigns hunk",
-  },
-  {
-    "[c",
-    function()
-      if vim.wo.diff then
-        return "[c"
-      end
-      vim.schedule(function() require("gitsigns").nav_hunk('last') end)
-      return "<Ignore>"
-    end,
-    desc = "Git: Previous gitsigns hunk",
-  },
+  { "]c", function() if vim.wo.diff then vim.cmd.normal({ "]c", bang = true }) else vim.cmd("Gitsigns nav_hunk next") end end, desc = "Nav: Next Hunk" },
+  { "[c", function() if vim.wo.diff then vim.cmd.normal({ "[c", bang = true }) else vim.cmd("Gitsigns nav_hunk prev") end end, desc = "Nav: Prev Hunk" },
+  { "<leader>gg", ":diffget ",                                 desc = "Conflict: Diff Get" },
+  { "<leader>gp", ":diffput ",                                 desc = "Conflict: Diff Put" },
+  
 
   -- avante
   { "<leader>a", group = "avante" },
