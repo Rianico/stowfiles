@@ -23,6 +23,7 @@ map("n", "<A-k>", ":wincmd k<CR>", opt)
 -- [b, ]b, [B, ]B navigate through the buffer list
 -- [<Space>, ]<Space> add an empty line above and below the cursor
 -- [d and ]d move between diagnostics in the current buffer ([D jumps to the first diagnostic, ]D jumps to the last)
+-- [c and ]c move between git hunks in the current buffer
 local wk = require("which-key")
 
 wk.add({
@@ -52,6 +53,41 @@ wk.add({
     -- ":lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.W})<CR>",
     function() require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.W }) end,
     desc = "Diagnostics: Next Warnning",
+    hidden = true,
+  },
+})
+
+-- Yank file path to clipboard
+wk.add({
+  { "<leader>y", group = "Yank Path" },
+  {
+    "<leader>yy",
+    function()
+      local path = vim.fn.expand("%:p")
+      vim.fn.setreg("+", path)
+      vim.notify("Copied: " .. path, vim.log.levels.INFO)
+    end,
+    desc = "Yank: File Path",
+    hidden = true,
+  },
+  {
+    "<leader>yl",
+    function()
+      local path = vim.fn.expand("%:p") .. ":" .. vim.fn.line(".")
+      vim.fn.setreg("+", path)
+      vim.notify("Copied: " .. path, vim.log.levels.INFO)
+    end,
+    desc = "Yank: File Path with Line",
+    hidden = true,
+  },
+  {
+    "<leader>yc",
+    function()
+      local path = vim.fn.expand("%:p") .. ":" .. vim.fn.line(".") .. ":" .. vim.fn.col(".")
+      vim.fn.setreg("+", path)
+      vim.notify("Copied: " .. path, vim.log.levels.INFO)
+    end,
+    desc = "Yank: File Path with Line:Col",
     hidden = true,
   },
 })
