@@ -7,10 +7,21 @@ local custom_vendors = {
     endpoint = "https://qianfan.baidubce.com/v2/coding",
     model = "glm-5",
     timeout = 30000, -- Timeout in milliseconds
-    extra_request_body = {
-      temperature = 0.75,
-      max_tokens = 32768,
-    },
+    -- extra_request_body = {
+    --   temperature = 0.75,
+    --   max_tokens = 32768,
+    -- },
+  },
+  mimo = {
+    __inherited_from = "openai",
+    api_key_name = "MIMO_API_KEY",
+    endpoint = "https://token-plan-cn.xiaomimimo.com/v1",
+    model = "mimo-v2.5-pro",
+    timeout = 30000, -- Timeout in milliseconds
+    -- extra_request_body = {
+    --   temperature = 0.75,
+    --   max_tokens = 32768,
+    -- },
   },
 }
 
@@ -35,13 +46,13 @@ return {
     -- add any opts here
     -- for example
     ---@alias Provider "claude" | "openai" | "azure" | "gemini" | "cohere" | "copilot" | string
-    provider = "dashscope", -- The provider used in Aider mode or in the planning phase of Cursor Planning Mode
+    provider = "mimo", -- The provider used in Aider mode or in the planning phase of Cursor Planning Mode
     ---@alias Mode "agentic" | "legacy"
     mode = "agentic", -- The default mode for interaction. "agentic" uses tools to automatically generate code, "legacy" uses the old planning method to generate code.
     -- WARNING: Since auto-suggestions are a high-frequency operation and therefore expensive,
     -- currently designating it as `copilot` provider is dangerous because: https://github.com/yetone/avante.nvim/issues/1048
     -- Of course, you can reduce the request frequency by increasing `suggestion.debounce`.
-    auto_suggestions_provider = "dashscope",
+    auto_suggestions_provider = "mimo",
     providers = custom_vendors,
     ---Specify the special dual_boost mode
     ---1. enabled: Whether to enable dual_boost mode. Default to false.
