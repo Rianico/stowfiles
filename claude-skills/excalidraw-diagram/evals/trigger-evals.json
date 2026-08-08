@@ -1,0 +1,22 @@
+[
+  {"query": "I need to create a flowchart showing the user authentication process with login, token validation, and error handling paths", "should_trigger": true},
+  {"query": "can you draw a mindmap for my biology notes on cellular respiration? want to see how glycolysis connects to everything else", "should_trigger": true},
+  {"query": "make me an excalidraw diagram of the AWS architecture - got EC2, S3, RDS, and CloudFront in my obsidian vault", "should_trigger": true},
+  {"query": "ok so i have this process for handling customer refunds and i want to visualize it as a diagram with decision points", "should_trigger": true},
+  {"query": "need a visual comparison of microservices vs monolith architecture, something i can embed in my obsidian notes", "should_trigger": true},
+  {"query": "create a hierarchy diagram showing the org structure - CEO at top, then VPs, then directors reporting to them", "should_trigger": true},
+  {"query": "i'm writing docs on our CI/CD pipeline and need a diagram showing the stages from commit to deploy", "should_trigger": true},
+  {"query": "draw me a timeline of the french revolution for my history class notes in obsidian", "should_trigger": true},
+  {"query": "help me visualize this data flow: user input -> api gateway -> lambda -> dynamodb -> response back to client", "should_trigger": true},
+  {"query": "Need to sketch out a quick system architecture diagram with boxes and arrows connecting services", "should_trigger": true},
+  {"query": "write a python script that reads a CSV and generates a bar chart showing sales by month", "should_trigger": false},
+  {"query": "can you convert this mermaid diagram syntax to SVG format? I have the .mmd file already", "should_trigger": false},
+  {"query": "I need to extract text from a PDF document and summarize the key points", "should_trigger": false},
+  {"query": "create a simple ASCII art flowchart I can paste in a text file or slack message", "should_trigger": false},
+  {"query": "help me debug this react component - it's not re-rendering when the state changes", "should_trigger": false},
+  {"query": "what's the best way to structure a postgres database for a blog with users, posts, and comments?", "should_trigger": false},
+  {"query": "I want to create a mindmap but in plain markdown format with nested bullet points, not an actual drawing", "should_trigger": false},
+  {"query": "convert this image to base64 encoding so I can embed it in an email", "should_trigger": false},
+  {"query": "explain the concept of dependency injection with code examples in typescript", "should_trigger": false},
+  {"query": "read my obsidian note about project requirements and create a todo list from it", "should_trigger": false}
+]
