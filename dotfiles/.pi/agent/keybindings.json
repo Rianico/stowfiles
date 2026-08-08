@@ -1,0 +1,10 @@
+{
+  "tui.altScreen.pageUp": [
+    "pageUp",
+    "ctrl+b"
+  ],
+  "tui.altScreen.pageDown": [
+    "pageDown",
+    "ctrl+f"
+  ]
+}

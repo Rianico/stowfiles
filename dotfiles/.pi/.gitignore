@@ -1,0 +1,23 @@
+# pi config — only extensions, keybindings, permissions, settings are tracked.
+# Everything else in this directory is ignored, including any files added in the future.
+
+# Ignore everything by default
+*
+
+# Re-include the four tracked items
+!agent/
+!agent/extensions/
+!agent/extensions/**
+!agent/keybindings.json
+!agent/permissions/
+!agent/permissions/**
+!agent/settings.json
+
+# Keep this file itself tracked
+!.gitignore
+
+# Never track generated/junk artifacts, even inside the tracked dirs
+agent/extensions/**/.git/
+agent/extensions/**/node_modules/
+agent/extensions/**/coverage/
+agent/permissions/**/node_modules/

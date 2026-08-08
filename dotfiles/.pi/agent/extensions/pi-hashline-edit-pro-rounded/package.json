@@ -1,0 +1,61 @@
+{
+  "name": "pi-hashline-edit-pro-rounded",
+  "version": "1.0.3",
+  "type": "module",
+  "description": "Rounded-corner frames for Pi tool blocks that embed pi-hashline-edit-pro (hashline read/replace/undo) plus the built-ins",
+  "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rianico/pi-hashline-edit-pro-rounded.git"
+  },
+  "homepage": "https://github.com/Rianico/pi-hashline-edit-pro-rounded",
+  "bugs": {
+    "url": "https://github.com/Rianico/pi-hashline-edit-pro-rounded/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "rounded-corners",
+    "hashline"
+  ],
+  "license": "MIT",
+  "files": [
+    "index.ts",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "image": "https://raw.githubusercontent.com/Rianico/pi-hashline-edit-pro-rounded/main/preview.png"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "dependencies": {
+    "pi-hashline-edit-pro": "^1.2.0"
+  },
+  "bundledDependencies": [
+    "pi-hashline-edit-pro"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --coverage.thresholds.lines=80 --coverage.thresholds.statements=80 --coverage.thresholds.functions=75 --coverage.thresholds.branches=70",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.8"
+  }
+}

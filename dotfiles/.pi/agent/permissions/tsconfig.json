@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "typeRoots": ["./__tests__/node_modules/@types"],
+    "paths": {
+      "@thurstonsand/pi-permissions": [
+        "../npm/node_modules/@thurstonsand/pi-permissions/src/index.ts"
+      ]
+    }
+  },
+  "include": ["*.ts"],
+  "files": ["./__tests__/pi-coding-agent.d.ts"]
+}
