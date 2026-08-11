@@ -1,5 +1,7 @@
-import { homedir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, mkdirSync, realpathSync, rmSync, symlinkSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import paths from "../paths.ts";
 import { loadHooks, promptOf, run } from "./helpers.ts";
 
@@ -141,5 +143,80 @@ describe("outside workspace gate", () => {
 			}),
 		);
 		expect(decision).toBeUndefined();
+	});
+});
+
+describe("outside workspace gate — symlink resolution", () => {
+	let root: string;
+	let ws: string; // real workspace directory
+	let outsideDir: string; // real directory outside the workspace
+
+	beforeAll(() => {
+		root = mkdtempSync(join(tmpdir(), "pi-perm-"));
+		ws = join(root, "ws");
+		outsideDir = join(root, "outside");
+		mkdirSync(ws);
+		mkdirSync(join(ws, "src"));
+		mkdirSync(outsideDir);
+		// Workspace-internal symlink that escapes the workspace.
+		symlinkSync(outsideDir, join(ws, "escape"));
+		// Outside symlink whose real target is inside the workspace.
+		symlinkSync(ws, join(root, "via-link"));
+	});
+
+	afterAll(() => {
+		rmSync(root, { recursive: true, force: true });
+	});
+
+	it("passes a symlink whose real target is inside the workspace", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: join(root, "via-link", "src", "main.ts"),
+				absolutePath: join(root, "via-link", "src", "main.ts"),
+				projectPath: undefined, // lexical path escapes the workspace
+			}),
+			ws,
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("passes creating a new file through a symlink into the workspace", async () => {
+		const decision = await decide(
+			pathTool("write", {
+				path: join(root, "via-link", "newfile.txt"),
+				absolutePath: join(root, "via-link", "newfile.txt"),
+				projectPath: undefined,
+			}),
+			ws,
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("asks when a workspace-internal symlink escapes the workspace", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: join(ws, "escape", "secret.txt"),
+				absolutePath: join(ws, "escape", "secret.txt"),
+				projectPath: "escape/secret.txt", // lexical path looks inside
+			}),
+			ws,
+		);
+		const prompt = promptOf(decision);
+		expect(prompt).toBeDefined();
+		expect(prompt?.guidance).toContain(
+			join(realpathSync(outsideDir), "secret.txt"),
+		);
+	});
+
+	it("asks when writing through a workspace-internal symlink that escapes", async () => {
+		const decision = await decide(
+			pathTool("write", {
+				path: join(ws, "escape", "new.txt"),
+				absolutePath: join(ws, "escape", "new.txt"),
+				projectPath: "escape/new.txt",
+			}),
+			ws,
+		);
+		expect(promptOf(decision)).toBeDefined();
 	});
 });
