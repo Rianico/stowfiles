@@ -23,19 +23,58 @@ function parseSemver(raw: string): [number, number, number] | null {
   return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)]
 }
 
+// Bounded memo of `rtk rewrite` results, keyed by the raw command string.
+// rtk's rewrite registry is static for a given rtk version, so a command that
+// rewrote (or passed through) once will behave the same next time. This turns
+// the ~10-30ms subprocess spawn per bash call into a map lookup for repeated
+// commands (very common in agent loops: `git status`, `cat x`, `npm test`).
+const MAX_CACHE_ENTRIES = 500
+const rewriteCache = new Map<string, string | null>()
+
+// In-flight dedupe: parallel bash calls with the same command share one rtk
+// spawn instead of spawning once each.
+const inFlightRewrites = new Map<string, Promise<string | null>>()
+
 // Calls `rtk rewrite`; returns the rewritten command or null (pass through).
+// null results are cached too (fail-open): a timeout/kill once on a command
+// does not re-pay the subprocess latency on every later occurrence.
 async function rewriteCommand(
   pi: ExtensionAPI,
   cmd: string,
   signal?: AbortSignal
 ): Promise<string | null> {
-  const result = await pi.exec("rtk", ["rewrite", cmd], {
-    timeout: REWRITE_TIMEOUT_MS,
-    signal,
-  })
-  if (result.killed) return null
-  if (result.code !== 0 && result.code !== 3) return null
-  return result.stdout.trim() || null
+  const cached = rewriteCache.get(cmd)
+  if (cached !== undefined) return cached
+
+  const pending = inFlightRewrites.get(cmd)
+  if (pending) return pending
+
+  const task = (async () => {
+    try {
+      const result = await pi.exec("rtk", ["rewrite", cmd], {
+        timeout: REWRITE_TIMEOUT_MS,
+        signal,
+      })
+      const rewritten = (() => {
+        if (result.killed) return null
+        if (result.code !== 0 && result.code !== 3) return null
+        return result.stdout.trim() || null
+      })()
+      if (rewriteCache.size >= MAX_CACHE_ENTRIES) {
+        // Evict the oldest entry (Map preserves insertion order).
+        const oldest = rewriteCache.keys().next().value
+        if (oldest !== undefined) rewriteCache.delete(oldest)
+      }
+      rewriteCache.set(cmd, rewritten)
+      return rewritten
+    } catch {
+      return null
+    } finally {
+      inFlightRewrites.delete(cmd)
+    }
+  })()
+  inFlightRewrites.set(cmd, task)
+  return task
 }
 
 export default async function (pi: ExtensionAPI) {
