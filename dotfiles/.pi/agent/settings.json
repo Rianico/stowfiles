@@ -26,15 +26,15 @@
     "npm:pi-mcp-adapter",
     "npm:pi-btw",
     "npm:pi-simplify",
-    "npm:@juicesharp/rpiv-web-tools",
     "npm:@firstpick/pi-themes-bundle",
-    "npm:@thurstonsand/pi-permissions",
+    "git:github.com/Rianico/pi-permissions",
     "npm:pi-lens",
     "npm:pi-vision-proxy",
     "npm:pi-atelier",
     "npm:pi-subagents",
     "npm:pi-interactive-shell",
-    "npm:pi-hashline-edit-lsz"
+    "npm:pi-hashline-edit-lsz",
+    "npm:pi-web-access"
   ],
   "fullscreenScrollbar": "auto",
   "tuiMode": "fullscreen",
