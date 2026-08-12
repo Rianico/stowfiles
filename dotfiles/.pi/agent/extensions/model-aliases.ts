@@ -1,27 +1,45 @@
 /**
- * Model Aliases — deterministic, user-defined model aliases for pi.
+ * Model Aliases — by zhengxk
+ * ─────────────────────────────
+ * Deterministic, user-defined model aliases for pi: `pi --model <alias>` and
+ * Agent-tool subagent aliasing, from a single aliases.json source of truth.
  *
+ * ═ Attribution ═
+ * Renamed from the original author's pattern and built on his excellent work:
+ * Mario Zechner (badlogic) — pi (https://github.com/earendil-works/pi), its
+ * extension API, and the preset.ts example this grew from. Thank you for the
+ * excellent work.
+ *
+ * ═ Our refinements (vs. the preset.ts pattern it grew from) ═
+ * 1. Explicit schema: alias = { provider, model, thinking? } — no hidden fuzzy
+ *    semantics inside the map itself.
+ * 2. Deterministic resolution: collision-free names validated against the live
+ *    catalog at load (an alias must not be a substring of any other model's
+ *    id/name/provider-id, nor of another alias) — prevents the silent wrong-
+ *    model picks that substring matching otherwise produces.
+ * 3. Single source of truth: aliases.json, auto-synced additively into
+ *    models.json modelOverrides (never clobbers, never deletes, drift-detected).
+ * 4. Two surfaces from one map: pi's built-in --model resolver AND the Agent
+ *    tool (pi-subagents) model param, both via the synced `name` field.
+ * 5. In-session UX: /alias (list/apply/sync/check) + footer `alias:` indicator.
+ * 6. Thinking: `:suffix` on the CLI (`--model orchestrator:high`), alias-default
+ *    thinking in-session via /alias.
+ *
+ * ─────────────────────────────
  * Config: ~/.pi/agent/aliases.json  (global only — models.json is global, so
  * names can only be synced for global aliases)
  *
  *   {
- *     "fast": { "provider": "anthropic", "model": "claude-haiku-4-5", "thinking": "medium" },
- *     "big":  { "provider": "anthropic", "model": "claude-opus-4-8",  "thinking": "high" }
+ *     "orchestrator": { "provider": "opencode-go", "model": "grok-4.5" },
+ *     "runner":       { "provider": "opencode-go", "model": "deepseek-v4-flash" }
  *   }
  *
- * How it works (design settled in a grilling session):
+ * How it works:
  * - Each alias is synced into ~/.pi/agent/models.json as a `modelOverrides`
- *   `name` entry on the target model. pi's built-in `--model` resolver AND the
- *   Agent tool (pi-subagents) both match the `name` field, so `pi --model fast`
- *   and `model: fast` in an Agent tool call resolve to the target model.
- * - Determinism contract: alias names must be collision-free — an alias must
- *   not be a substring of any OTHER model's id/name/provider-id, nor of another
- *   alias, or resolution becomes nondeterministic (pi prefers the highest-
- *   sorting id among all substring matches). Validated at load; violations are
- *   reported as warnings/errors.
- * - CLI thinking is expressed with the built-in suffix: `pi --model fast:high`.
- *   Alias-default thinking (`"thinking"`) is applied by `/alias <name>` in-
- *   session only (an extension cannot read the built-in --model flag).
+ *   `name` entry on the target model, so the built-in --model resolver AND the
+ *   Agent tool (pi-subagents) both match the `name` field.
+ * - The determinism contract (refinement 2) is validated at load; violations
+ *   are reported as warnings/errors.
  * - models.json writes are additive-only: names are added when missing, never
  *   overwritten or removed. Removing an alias leaves its name in place.
  *
