@@ -13,7 +13,7 @@
       "vitest/globals"
     ],
     "paths": {
-      "pi-permission-lsz": [
+      "@rianico/pi-permission-lsz": [
         "../../git/github.com/Rianico/pi-permission-lsz/src/index.ts"
       ]
     }

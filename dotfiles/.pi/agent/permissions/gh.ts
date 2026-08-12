@@ -4,7 +4,7 @@ import {
 	request,
 	type PermissionsAPI,
 	type SimpleCommand,
-} from "pi-permission-lsz";
+} from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
 // Gates: publishing GitHub content through the `gh` CLI

@@ -6,7 +6,7 @@ import {
 	type HighlightSpan,
 	type PermissionsAPI,
 	type SimpleCommand,
-} from "pi-permission-lsz";
+} from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
 // Gate: git commit

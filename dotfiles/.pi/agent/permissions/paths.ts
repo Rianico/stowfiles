@@ -12,7 +12,7 @@ import {
 	matchTool,
 	request,
 	type PermissionsAPI,
-} from "pi-permission-lsz";
+} from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
 // Gate: file access outside the current working directory

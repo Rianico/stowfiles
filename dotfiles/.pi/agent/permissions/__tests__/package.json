@@ -7,7 +7,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "pi-permission-lsz": "file:../../git/github.com/Rianico/pi-permission-lsz"
+    "@rianico/pi-permission-lsz": "file:../../git/github.com/Rianico/pi-permission-lsz"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
