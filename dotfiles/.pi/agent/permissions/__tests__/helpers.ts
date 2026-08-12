@@ -48,9 +48,26 @@ export function promptOf(decision: unknown): RequestPromptShape | undefined {
 }
 
 export function highlightSlices(command: string, highlight: unknown): string[] {
-	const spans = (Array.isArray(highlight) ? highlight : []) as Array<{
-		start: number;
-		end: number;
-	}>;
-	return spans.map((span) => command.slice(span.start, span.end));
+	return resolveHighlightSpans(command, highlight).map((span) =>
+		command.slice(span.start, span.end),
+	);
+}
+
+// matchCommand now merges the matched command's identity into the hook's
+// highlight as a lazy function; resolve it against the command under test.
+function resolveHighlightSpans(
+	command: string,
+	highlight: unknown,
+): Array<{ start: number; end: number }> {
+	if (typeof highlight === "function") {
+		try {
+			return resolveHighlightSpans(command, (highlight as (detail: string) => unknown)(command));
+		} catch {
+			return [];
+		}
+	}
+	if (Array.isArray(highlight)) {
+		return highlight as Array<{ start: number; end: number }>;
+	}
+	return [];
 }

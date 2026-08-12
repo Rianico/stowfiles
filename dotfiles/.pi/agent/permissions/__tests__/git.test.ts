@@ -42,7 +42,8 @@ describe("git commit gate", () => {
 			promptOf(decision)?.highlight,
 		);
 		expect(slices.some((slice) => slice.includes("fix the bug"))).toBe(true);
-		expect(slices.some((slice) => slice.includes("git commit"))).toBe(false);
+		expect(slices.some((slice) => slice === "git")).toBe(true);
+		expect(slices.some((slice) => slice === "commit")).toBe(true);
 	});
 
 	it("highlights combined short -am message", async () => {
@@ -52,7 +53,8 @@ describe("git commit gate", () => {
 			promptOf(decision)?.highlight,
 		);
 		expect(slices.some((slice) => slice.includes("all + message"))).toBe(true);
-		expect(slices.some((slice) => slice.includes("git commit"))).toBe(false);
+		expect(slices.some((slice) => slice === "git")).toBe(true);
+		expect(slices.some((slice) => slice === "commit")).toBe(true);
 	});
 
 	it("highlights the message file of combined short -aF", async () => {
@@ -62,7 +64,8 @@ describe("git commit gate", () => {
 			promptOf(decision)?.highlight,
 		);
 		expect(slices.some((slice) => slice.includes("msgfile.txt"))).toBe(true);
-		expect(slices.some((slice) => slice.includes("git commit"))).toBe(false);
+		expect(slices.some((slice) => slice === "git")).toBe(true);
+		expect(slices.some((slice) => slice === "commit")).toBe(true);
 	});
 
 	it("highlights --message= inline value without consuming the next argument", async () => {
