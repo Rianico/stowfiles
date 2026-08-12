@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "0.84.1",
-  "theme": "dracula",
+  "theme": "one-dark",
   "defaultProvider": "opencode-go",
   "defaultModel": "deepseek-v4-flash",
   "showHardwareCursor": true,
@@ -25,15 +25,22 @@
   "packages": [
     "npm:pi-mcp-adapter",
     "npm:pi-btw",
-    "npm:@tintinweb/pi-subagents",
     "npm:pi-simplify",
     "npm:@juicesharp/rpiv-web-tools",
     "npm:@firstpick/pi-themes-bundle",
-    "npm:pi-open-tui",
     "npm:@thurstonsand/pi-permissions",
-    "npm:pi-lens"
+    "npm:pi-lens",
+    "npm:pi-vision-proxy",
+    "npm:pi-atelier",
+    "npm:pi-subagents",
+    "npm:pi-interactive-shell",
+    "npm:pi-hashline-edit-lsz"
   ],
   "fullscreenScrollbar": "auto",
   "tuiMode": "fullscreen",
-  "hideThinkingBlock": true
+  "hideThinkingBlock": true,
+  "editorPaddingX": 1,
+  "markdown": {
+    "mermaid": "streaming"
+  }
 }
