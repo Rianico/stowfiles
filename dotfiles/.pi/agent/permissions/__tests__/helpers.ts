@@ -1,7 +1,7 @@
 import type {
 	PermissionsAPI,
 	ToolUsePermissionHook,
-} from "@thurstonsand/pi-permissions";
+} from "pi-permission-lsz";
 
 export type Registered = Pick<ToolUsePermissionHook, "name" | "handler">;
 

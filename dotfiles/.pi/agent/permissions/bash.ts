@@ -3,7 +3,7 @@ import {
   matchTool,
   request,
   type PermissionsAPI,
-} from "@thurstonsand/pi-permissions";
+} from "pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
 // Gate: rm

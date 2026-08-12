@@ -27,7 +27,7 @@
     "npm:pi-btw",
     "npm:pi-simplify",
     "npm:@firstpick/pi-themes-bundle",
-    "git:github.com/Rianico/pi-permissions",
+    "git:github.com/Rianico/pi-permission-lsz",
     "npm:pi-lens",
     "npm:pi-vision-proxy",
     "npm:pi-atelier",

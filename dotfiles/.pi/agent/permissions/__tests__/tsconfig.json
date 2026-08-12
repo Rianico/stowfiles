@@ -13,8 +13,8 @@
       "vitest/globals"
     ],
     "paths": {
-      "@thurstonsand/pi-permissions": [
-        "../../git/github.com/Rianico/pi-permissions/src/index.ts"
+      "pi-permission-lsz": [
+        "../../git/github.com/Rianico/pi-permission-lsz/src/index.ts"
       ]
     }
   },
