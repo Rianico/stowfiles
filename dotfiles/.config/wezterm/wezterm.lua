@@ -6,6 +6,8 @@ if wezterm.config_builder then
   config = wezterm.config_builder()
 end
 
+config.enable_kitty_keyboard = true
+
 -- Windows
 local os_name = string.lower(os.getenv("OS") or "")
 if string.find(os_name, "windows") ~= nil then
