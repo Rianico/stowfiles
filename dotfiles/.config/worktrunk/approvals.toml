@@ -1,0 +1,7 @@
+[projects."github.com/Rianico/llm-lsp-cli"]
+approved-commands = [
+    """
+  SRC='{{ repo_path }}/.claude'; DST='{{ worktree_path }}/.claude'; mkdir -p "$DST"; for f in "$SRC"/settings.json* "$SRC"/hookify.*; do [ -e "$f" ] && cp -a "$f" "$DST/"; done; for d in hooks rules; do [ -d "$SRC/$d" ] && cp -a "$SRC/$d" "$DST/"; done
+""",
+    "uv run pytest tests/ -q",
+]
