@@ -7,6 +7,9 @@ if wezterm.config_builder then
 end
 
 config.enable_kitty_keyboard = true
+-- Encode shifted arrows as CSI-u (ESC[1;2A) so TUIs can tell Shift+↑/↓ from
+-- plain ↑/↓ without a kitty handshake (pi does not request one).
+config.enable_csi_u_key_encoding = true
 
 -- Windows
 local os_name = string.lower(os.getenv("OS") or "")
