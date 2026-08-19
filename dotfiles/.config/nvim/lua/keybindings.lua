@@ -68,7 +68,7 @@ wk.add({
       vim.notify("Copied: " .. path, vim.log.levels.INFO)
     end,
     desc = "Yank: File Path",
-    hidden = true,
+    hidden = false,
   },
   {
     "<leader>yl",
@@ -78,7 +78,7 @@ wk.add({
       vim.notify("Copied: " .. path, vim.log.levels.INFO)
     end,
     desc = "Yank: File Path with Line",
-    hidden = true,
+    hidden = false,
   },
   {
     "<leader>yc",
@@ -88,7 +88,7 @@ wk.add({
       vim.notify("Copied: " .. path, vim.log.levels.INFO)
     end,
     desc = "Yank: File Path with Line:Col",
-    hidden = true,
+    hidden = false,
   },
 })
 

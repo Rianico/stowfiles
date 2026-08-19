@@ -53,12 +53,9 @@ return {
   -- grammar highlight
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
-    build = ":TSUpdate",
     lazy = false,
-    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
+    build = ":TSUpdate",
   },
-  { "p00f/nvim-ts-rainbow", after = "nvim-treesitter" },
   -- mini.nvim
   { "echasnovski/mini.cursorword" },
   { "echasnovski/mini.pairs" },

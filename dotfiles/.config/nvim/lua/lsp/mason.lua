@@ -221,4 +221,6 @@ vim.lsp.enable({
   "gopls",
   "yamlls",
   "markdown_oxide",
+  "ts_ls",
+  "jsonls",
 })
