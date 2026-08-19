@@ -173,7 +173,6 @@ vim.lsp.config.basedpyright = {
   },
 }
 
-vim.cmd([[ autocmd BufEnter *.slint :setlocal filetype=slint ]])
 vim.lsp.config.slint_lsp = {
   capabilities = capabilities,
   command = { "slint-lsp" },

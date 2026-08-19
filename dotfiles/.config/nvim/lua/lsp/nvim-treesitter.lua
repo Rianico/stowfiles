@@ -1,5 +1,6 @@
 ---@diagnostic disable: missing-fields
--- Languages to install parsers for and enable treesitter highlighting, indentation and folds
+-- Languages to install parsers for and enable highlighting + indentation
+-- (folds are handled by nvim-ufo)
 -- (https://github.com/nvim-treesitter/nvim-treesitter#highlighting)
 local languages = {
   "bash",
@@ -45,7 +46,7 @@ local filetypes = vim.list_extend(vim.deepcopy(languages), {
 -- Install parsers (no-op if already installed)
 require("nvim-treesitter").install(languages)
 
--- Enable treesitter highlighting, indentation and folds for the filetypes above.
+-- Enable treesitter highlighting + indentation for the filetypes above.
 vim.api.nvim_create_autocmd("FileType", {
   pattern = filetypes,
   callback = function(args)
@@ -66,9 +67,6 @@ vim.api.nvim_create_autocmd("FileType", {
       -- Indentation (experimental; https://github.com/nvim-treesitter/nvim-treesitter#indentation)
       vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
-    -- Folds
-    vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    vim.wo[0][0].foldmethod = "expr"
   end,
 })
 -- change rainbow
