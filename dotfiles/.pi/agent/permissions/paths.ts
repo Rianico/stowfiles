@@ -10,6 +10,7 @@ import {
 } from "node:path";
 import {
 	matchTool,
+	parseShellCommand,
 	request,
 	type PermissionsAPI,
 } from "@rianico/pi-permission-lsz";
@@ -67,6 +68,62 @@ function isOutside(base: string, path: string): boolean {
 	return rel !== "" && (rel.startsWith("..") || isAbsolute(rel));
 }
 
+// ---------------------------------------------------------------------------
+// Allowlist: coding-agent skill + prompt directories (Pi / Codex / Claude compat)
+// ---------------------------------------------------------------------------
+//
+// Reads of skill/prompt content are expected to come from outside the workspace
+// (global `~/.pi/agent/skills`, `~/.pi/agent/prompts`, `~/.claude/skills`,
+// `~/.codex/skills`, `~/stowfiles/dotfiles/.pi/agent/prompts` … or
+// project-local `.pi/skills`, `.claude/skills`, `.agent/skills` etc.). The
+// outside-workspace gate would otherwise prompt for every skill/prompt load.
+// This allowlist keeps those reads (and equivalent bash `cat`/`ls` probes)
+// quiet while leaving all other outside paths gated.
+// Markers are dot-prefixed skill roots — substring match is intentional so
+// both absolute (`/Users/x/.pi/agent/skills/foo/SKILL.md`) and expanded
+// home (`~/.codex/skills/...`) forms match without requiring the file to
+// exist on disk. A plain `skills/` substring is NOT whitelisted to avoid
+// overly broad bypass.
+const SKILL_PATH_MARKERS = [
+	".pi/agent/skills",
+	".pi/skills",
+	".agents/skills",
+	".agent/skills",
+	".claude/skills",
+	".codex/skills",
+	".cursor/skills",
+	".pi/agent/prompts",
+] as const;
+
+function isCodingAgentSkillPath(path: string): boolean {
+	const normalized = path.replace(/\\/g, "/");
+	return SKILL_PATH_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function isSkillAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return (
+		isCodingAgentSkillPath(absolute) ||
+		(real !== undefined && isCodingAgentSkillPath(real))
+	);
+}
+
+async function bashTouchesSkillPath(command: string): Promise<boolean> {
+	if (isCodingAgentSkillPath(command)) return true;
+	try {
+		const parsed = await parseShellCommand(command);
+		return parsed.commands.some(
+			(cmd) =>
+				isCodingAgentSkillPath(cmd.program?.text ?? "") ||
+				cmd.args.some((arg) => isCodingAgentSkillPath(arg.text)),
+		);
+	} catch {
+		return false;
+	}
+}
+
 interface PathTool {
 	path?: string;
 	absolutePath?: string;
@@ -113,9 +170,15 @@ function pathVerdict(tool: PathTool, cwd: string, realCwd: string) {
 	// component along the way resolves.
 	const real = realTarget(absolute);
 	const inside =
-		real !== undefined ? !isOutside(realCwd, real) : !isOutside(cwd, absolute);
+		real === undefined ? !isOutside(cwd, absolute) : !isOutside(realCwd, real);
 
 	if (inside) return undefined;
+
+	// Skill/prompt content lives outside the workspace by design (global user dirs
+	// and project-local skill roots, plus stowed prompts at
+	// `~/stowfiles/dotfiles/.pi/agent/prompts`). Bypass the outside-workspace
+	// prompt for those paths — keep the gate for every other outside location.
+	if (isSkillAbsolutePath(absolute, real)) return undefined;
 
 	return outsideRequest(target, absolute, real, cwd, tool.detail);
 }
@@ -138,6 +201,38 @@ export default function permissions(api: PermissionsAPI) {
 				grep: (tool) => pathVerdict(tool, input.cwd, realCwd),
 				find: (tool) => pathVerdict(tool, input.cwd, realCwd),
 				ls: (tool) => pathVerdict(tool, input.cwd, realCwd),
+				bash: async (tool) => {
+					// Bash probes of skill/prompt content (e.g. `cat ~/.pi/agent/skills/...`,
+					// `cat ~/stowfiles/dotfiles/.pi/agent/prompts/...`, `ls .claude/skills`)
+					// should not prompt. Check both raw command and parsed tokens for markers.
+					if (await bashTouchesSkillPath(tool.command)) return undefined;
+					return undefined;
+				},
+				custom: {
+					// `read_skill` (pi-better-edit) is a plain-text skill loader that
+					// bypasses served-state. It should never prompt when the target
+					// is a coding-agent skill path (Pi / Claude / Codex). For other
+					// locations fall back to the same outside-workspace check as `read`.
+					read_skill: (tool) => {
+						const raw = (tool.input as Record<string, unknown>)["path"];
+						const p = typeof raw === "string" ? raw : tool.detail;
+						if (isCodingAgentSkillPath(p)) return undefined;
+						// Reuse pathVerdict semantics for non-skill read_skill targets
+						// by synthesizing a PathTool from the custom input.
+						const synthetic: PathTool = {
+							path: typeof raw === "string" ? raw : undefined,
+							absolutePath:
+								typeof raw === "string"
+									? isAbsolute(expandHome(raw))
+										? resolve(expandHome(raw))
+										: resolve(input.cwd, expandHome(raw))
+									: undefined,
+							detail: tool.detail,
+						};
+						if (synthetic.path === undefined) return undefined;
+						return pathVerdict(synthetic, input.cwd, realCwd);
+					},
+				},
 			});
 		},
 	});
