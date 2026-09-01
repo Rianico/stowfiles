@@ -95,6 +95,43 @@ const SKILL_PATH_MARKERS = [
 	".pi/agent/prompts",
 ] as const;
 
+// Pi docs installed via Homebrew — read-only reference content that agents
+// routinely inspect (index, extensions, skills, etc.). Access via `read` or
+// bash `cat`/`rg`/`fd`/`find`/`grep` should not prompt.
+const PI_DOCS_ROOT =
+	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
+
+function isPiDocsPath(path: string): boolean {
+	const normalized = path.replace(/\\/g, "/");
+	return (
+		normalized === PI_DOCS_ROOT ||
+		normalized.startsWith(`${PI_DOCS_ROOT}/`) ||
+		normalized.endsWith(PI_DOCS_ROOT) ||
+		normalized.includes(`${PI_DOCS_ROOT}/`)
+	);
+}
+
+function isPiDocsAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return (
+		isPiDocsPath(absolute) ||
+		(real !== undefined && isPiDocsPath(real))
+	);
+}
+
+const PI_DOCS_ALLOWED_PROGRAMS = new Set([
+	"cat",
+	"bat",
+	"rg",
+	"grep",
+	"fd",
+	"find",
+	"ls",
+	"eza",
+]) as ReadonlySet<string>;
+
 function isCodingAgentSkillPath(path: string): boolean {
 	const normalized = path.replace(/\\/g, "/");
 	return SKILL_PATH_MARKERS.some((marker) => normalized.includes(marker));
@@ -124,6 +161,21 @@ async function bashTouchesSkillPath(command: string): Promise<boolean> {
 	}
 }
 
+async function bashTouchesPiDocsAllowed(command: string): Promise<boolean> {
+	if (!isPiDocsPath(command)) return false;
+	try {
+		const parsed = await parseShellCommand(command);
+		return parsed.commands.some((cmd) => {
+			const program = cmd.programName ?? cmd.program?.text ?? "";
+			if (!PI_DOCS_ALLOWED_PROGRAMS.has(program)) return false;
+			if (isPiDocsPath(cmd.program?.text ?? "")) return true;
+			return cmd.args.some((arg) => isPiDocsPath(arg.text));
+		});
+	} catch {
+		// Fallback: raw string already contains docs marker and allowed program text
+		return [...PI_DOCS_ALLOWED_PROGRAMS].some((prog) => command.includes(prog));
+	}
+}
 interface PathTool {
 	path?: string;
 	absolutePath?: string;
@@ -180,9 +232,13 @@ function pathVerdict(tool: PathTool, cwd: string, realCwd: string) {
 	// prompt for those paths — keep the gate for every other outside location.
 	if (isSkillAbsolutePath(absolute, real)) return undefined;
 
+	// Pi docs are read-only reference; allow read/grep/find/ls and bash
+	// cat/rg/fd/find/grep without prompting. Bypass for any outside path that
+	// resolves into the docs tree so agents can inspect docs freely.
+	if (isPiDocsAbsolutePath(absolute, real)) return undefined;
+
 	return outsideRequest(target, absolute, real, cwd, tool.detail);
 }
-
 // ---------------------------------------------------------------------------
 // Registration — add further path gates below (dotfile dirs, project roots, …)
 // ---------------------------------------------------------------------------
@@ -206,6 +262,10 @@ export default function permissions(api: PermissionsAPI) {
 					// `cat ~/stowfiles/dotfiles/.pi/agent/prompts/...`, `ls .claude/skills`)
 					// should not prompt. Check both raw command and parsed tokens for markers.
 					if (await bashTouchesSkillPath(tool.command)) return undefined;
+					// Pi docs bypass — only for read-like programs (cat, rg, grep, fd, find, ls)
+					// accessing the Homebrew docs tree. Other bash ops touching docs remain
+					// gated by future rules, but currently no generic bash outside gate exists.
+					if (await bashTouchesPiDocsAllowed(tool.command)) return undefined;
 					return undefined;
 				},
 				custom: {
@@ -217,6 +277,7 @@ export default function permissions(api: PermissionsAPI) {
 						const raw = (tool.input as Record<string, unknown>)["path"];
 						const p = typeof raw === "string" ? raw : tool.detail;
 						if (isCodingAgentSkillPath(p)) return undefined;
+						if (isPiDocsPath(p)) return undefined;
 						// Reuse pathVerdict semantics for non-skill read_skill targets
 						// by synthesizing a PathTool from the custom input.
 						const synthetic: PathTool = {
