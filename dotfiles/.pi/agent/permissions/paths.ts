@@ -12,8 +12,8 @@ import {
 	matchTool,
 	parseShellCommand,
 	request,
-	type PermissionsAPI,
 } from "@rianico/pi-permission-lsz";
+import type { PermissionsAPI } from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
 // Gate: file access outside the current working directory
@@ -69,21 +69,25 @@ function isOutside(base: string, path: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Allowlist: coding-agent skill + prompt directories (Pi / Codex / Claude compat)
+// Allowlist: read-only reference content (gathered)
 // ---------------------------------------------------------------------------
 //
-// Reads of skill/prompt content are expected to come from outside the workspace
-// (global `~/.pi/agent/skills`, `~/.pi/agent/prompts`, `~/.claude/skills`,
-// `~/.codex/skills`, `~/stowfiles/dotfiles/.pi/agent/prompts` … or
-// project-local `.pi/skills`, `.claude/skills`, `.agent/skills` etc.). The
-// outside-workspace gate would otherwise prompt for every skill/prompt load.
-// This allowlist keeps those reads (and equivalent bash `cat`/`ls` probes)
-// quiet while leaving all other outside paths gated.
-// Markers are dot-prefixed skill roots — substring match is intentional so
-// both absolute (`/Users/x/.pi/agent/skills/foo/SKILL.md`) and expanded
-// home (`~/.codex/skills/...`) forms match without requiring the file to
-// exist on disk. A plain `skills/` substring is NOT whitelisted to avoid
-// overly broad bypass.
+// Outside-workspace reads of reference content are expected and should not prompt:
+// - Pi reference (Homebrew): docs, examples —
+//   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs,
+//   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples
+// - Coding-agent skills/prompts (Pi / Codex / Claude compat):
+//   global ~/.pi/agent/skills, ~/.pi/agent/prompts, ~/.claude/skills,
+//   ~/.codex/skills, ~/stowfiles/dotfiles/.pi/agent/prompts, …
+//   and project-local .pi/skills, .claude/skills, .agent/skills, etc.
+// Gathered here so every read-only request
+// (read/grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
+// bypasses by default; edit/write remain gated.
+//
+// Skill markers are dot-prefixed roots — substring match is intentional so
+// both absolute (/Users/x/.pi/agent/skills/foo/SKILL.md) and expanded
+// home (~/.codex/skills/...) forms match without requiring the file to exist.
+// A plain `skills/` substring is NOT whitelisted to avoid overly broad bypass.
 const SKILL_PATH_MARKERS = [
 	".pi/agent/skills",
 	".pi/skills",
@@ -95,33 +99,103 @@ const SKILL_PATH_MARKERS = [
 	".pi/agent/prompts",
 ] as const;
 
-// Pi docs installed via Homebrew — read-only reference content that agents
-// routinely inspect (index, extensions, skills, etc.). Access via `read` or
+// Global dot-configs that are expected to be read outside the workspace
+// (e.g. ~/.pi, ~/.claude, ~/.codex). Read-only probes bypass; edit/write remain gated.
+const GLOBAL_CONFIG_MARKERS = [
+	"/.pi/",
+	"/.claude/",
+	"/.codex/",
+	"/.cursor/",
+	"/.agents/",
+	"/.agent/",
+] as const;
+
+const GLOBAL_CONFIG_SUFFIXES = [
+	"/.pi",
+	"/.claude",
+	"/.codex",
+	"/.cursor",
+	"/.agents",
+	"/.agent",
+] as const;
+
+function isGlobalConfigPath(path: string): boolean {
+	const normalized = path.replace(/\\/g, "/");
+	return (
+		GLOBAL_CONFIG_MARKERS.some((m) => normalized.includes(m)) ||
+		GLOBAL_CONFIG_SUFFIXES.some((s) => normalized.endsWith(s))
+	);
+}
+
+function isGlobalConfigAbsolutePath(absolute: string, real: string | undefined): boolean {
+	return isGlobalConfigPath(absolute) || (real !== undefined && isGlobalConfigPath(real));
+}
+
+// Pi docs/examples installed via Homebrew — read-only reference content that agents
+// routinely inspect (docs, examples, extensions, skills, etc.). Access via `read` or
 // bash `cat`/`rg`/`fd`/`find`/`grep` should not prompt.
 const PI_DOCS_ROOT =
 	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
+const PI_EXAMPLES_ROOT =
+	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
+const PI_REFERENCE_ROOTS = [PI_DOCS_ROOT, PI_EXAMPLES_ROOT] as const;
+const PI_ALLOWED_ROOTS = PI_REFERENCE_ROOTS;
 
-function isPiDocsPath(path: string): boolean {
+function isPiReferencePath(path: string): boolean {
 	const normalized = path.replace(/\\/g, "/");
-	return (
-		normalized === PI_DOCS_ROOT ||
-		normalized.startsWith(`${PI_DOCS_ROOT}/`) ||
-		normalized.endsWith(PI_DOCS_ROOT) ||
-		normalized.includes(`${PI_DOCS_ROOT}/`)
+	return PI_REFERENCE_ROOTS.some(
+		(root) =>
+			normalized === root ||
+			normalized.startsWith(`${root}/`) ||
+			normalized.includes(`${root}/`),
 	);
+}
+
+function isPiReferenceAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return (
+		isPiReferencePath(absolute) || (real !== undefined && isPiReferencePath(real))
+	);
+}
+
+// Back-compat aliases — deprecated, prefer isPiReference*/isReadOnlyBypass*
+function isPiDocsPath(path: string): boolean {
+	return isPiReferencePath(path);
+}
+
+function isPiExamplesPath(path: string): boolean {
+	return isPiReferencePath(path);
 }
 
 function isPiDocsAbsolutePath(
 	absolute: string,
 	real: string | undefined,
 ): boolean {
-	return (
-		isPiDocsPath(absolute) ||
-		(real !== undefined && isPiDocsPath(real))
-	);
+	return isPiReferenceAbsolutePath(absolute, real);
 }
 
-const PI_DOCS_ALLOWED_PROGRAMS = new Set([
+function isPiExamplesAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return isPiReferenceAbsolutePath(absolute, real);
+}
+
+function isPiAllowedPath(path: string): boolean {
+	return isPiReferencePath(path);
+}
+
+function isPiAllowedAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return isPiReferenceAbsolutePath(absolute, real);
+}
+
+// Single set for every read-only bash probe that may bypass (cat/bat/rg/grep/fd/find/ls/eza)
+const READONLY_BYPASS_PROGRAMS = new Set([
 	"cat",
 	"bat",
 	"rg",
@@ -131,6 +205,7 @@ const PI_DOCS_ALLOWED_PROGRAMS = new Set([
 	"ls",
 	"eza",
 ]) as ReadonlySet<string>;
+const PI_DOCS_ALLOWED_PROGRAMS = READONLY_BYPASS_PROGRAMS;
 
 function isCodingAgentSkillPath(path: string): boolean {
 	const normalized = path.replace(/\\/g, "/");
@@ -147,17 +222,56 @@ function isSkillAbsolutePath(
 	);
 }
 
-async function bashTouchesSkillPath(command: string): Promise<boolean> {
-	if (isCodingAgentSkillPath(command)) return true;
+/** Gathered read-only allowlist: Pi reference + skills/prompts. */
+function isReadOnlyBypassPath(path: string): boolean {
+	return isPiReferencePath(path) || isCodingAgentSkillPath(path) || isGlobalConfigPath(path);
+}
+
+function isReadOnlyBypassAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return (
+		isPiReferenceAbsolutePath(absolute, real) ||
+		isSkillAbsolutePath(absolute, real) ||
+		isGlobalConfigAbsolutePath(absolute, real)
+	);
+}
+
+async function bashTouchesReadOnlyBypass(command: string): Promise<boolean> {
+	if (!isReadOnlyBypassPath(command)) return false;
 	try {
 		const parsed = await parseShellCommand(command);
-		return parsed.commands.some(
-			(cmd) =>
-				isCodingAgentSkillPath(cmd.program?.text ?? "") ||
-				cmd.args.some((arg) => isCodingAgentSkillPath(arg.text)),
-		);
+		return parsed.commands.some((cmd) => {
+			const program = cmd.programName ?? cmd.program?.text ?? "";
+			if (!READONLY_BYPASS_PROGRAMS.has(program)) return false;
+			if (isReadOnlyBypassPath(cmd.program?.text ?? "")) return true;
+			return cmd.args.some((arg) => isReadOnlyBypassPath(arg.text));
+		});
 	} catch {
-		return false;
+		// Fallback: raw command already contains a bypass marker and a read-only program
+		return [...READONLY_BYPASS_PROGRAMS].some(
+			(prog) => command.includes(prog) && isReadOnlyBypassPath(command),
+		);
+	}
+}
+
+async function bashTouchesSkillPath(command: string): Promise<boolean> {
+	// Legacy alias — prefer bashTouchesReadOnlyBypass (gathered allowlist).
+	// Now gated to read-only programs so `rm`/`cp` etc. touching a skill path still prompt.
+	if (!isCodingAgentSkillPath(command)) return false;
+	try {
+		const parsed = await parseShellCommand(command);
+		return parsed.commands.some((cmd) => {
+			const program = cmd.programName ?? cmd.program?.text ?? "";
+			if (!READONLY_BYPASS_PROGRAMS.has(program)) return false;
+			if (isCodingAgentSkillPath(cmd.program?.text ?? "")) return true;
+			return cmd.args.some((arg) => isCodingAgentSkillPath(arg.text));
+		});
+	} catch {
+		return [...READONLY_BYPASS_PROGRAMS].some(
+			(prog) => command.includes(prog) && isCodingAgentSkillPath(command),
+		);
 	}
 }
 
@@ -202,7 +316,13 @@ function outsideRequest(
 	});
 }
 
-function pathVerdict(tool: PathTool, cwd: string, realCwd: string) {
+function pathVerdict(
+	tool: PathTool,
+	cwd: string,
+	realCwd: string,
+	opts: { allowReadOnlyBypass?: boolean } = {},
+) {
+	const allowReadOnlyBypass = opts.allowReadOnlyBypass ?? true;
 	if (tool.path === undefined) return undefined; // optional-path tools default to the cwd
 
 	const homeRelative = looksLikeHomePath(tool.path);
@@ -226,16 +346,10 @@ function pathVerdict(tool: PathTool, cwd: string, realCwd: string) {
 
 	if (inside) return undefined;
 
-	// Skill/prompt content lives outside the workspace by design (global user dirs
-	// and project-local skill roots, plus stowed prompts at
-	// `~/stowfiles/dotfiles/.pi/agent/prompts`). Bypass the outside-workspace
-	// prompt for those paths — keep the gate for every other outside location.
-	if (isSkillAbsolutePath(absolute, real)) return undefined;
-
-	// Pi docs are read-only reference; allow read/grep/find/ls and bash
-	// cat/rg/fd/find/grep without prompting. Bypass for any outside path that
-	// resolves into the docs tree so agents can inspect docs freely.
-	if (isPiDocsAbsolutePath(absolute, real)) return undefined;
+	// Gathered read-only allowlist (Pi docs/examples + skills/prompts):
+	// bypass only for read-only operations; edit/write remain gated.
+	if (allowReadOnlyBypass && isReadOnlyBypassAbsolutePath(absolute, real))
+		return undefined;
 
 	return outsideRequest(target, absolute, real, cwd, tool.detail);
 }
@@ -251,21 +365,22 @@ export default function permissions(api: PermissionsAPI) {
 		handler(input) {
 			const realCwd = realTarget(resolve(input.cwd)) ?? input.cwd;
 			return matchTool(input.tool, {
-				read: (tool) => pathVerdict(tool, input.cwd, realCwd),
-				edit: (tool) => pathVerdict(tool, input.cwd, realCwd),
-				write: (tool) => pathVerdict(tool, input.cwd, realCwd),
-				grep: (tool) => pathVerdict(tool, input.cwd, realCwd),
-				find: (tool) => pathVerdict(tool, input.cwd, realCwd),
-				ls: (tool) => pathVerdict(tool, input.cwd, realCwd),
+				read: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				edit: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				write: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				grep: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				find: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				ls: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
 				bash: async (tool) => {
-					// Bash probes of skill/prompt content (e.g. `cat ~/.pi/agent/skills/...`,
-					// `cat ~/stowfiles/dotfiles/.pi/agent/prompts/...`, `ls .claude/skills`)
-					// should not prompt. Check both raw command and parsed tokens for markers.
-					if (await bashTouchesSkillPath(tool.command)) return undefined;
-					// Pi docs bypass — only for read-like programs (cat, rg, grep, fd, find, ls)
-					// accessing the Homebrew docs tree. Other bash ops touching docs remain
-					// gated by future rules, but currently no generic bash outside gate exists.
-					if (await bashTouchesPiDocsAllowed(tool.command)) return undefined;
+					// Gathered read-only bypass: Pi docs/examples + skills/prompts
+					// Only cat/bat/rg/grep/fd/find/ls/eza touching an allowlisted path bypass.
+					if (await bashTouchesReadOnlyBypass(tool.command)) return undefined;
 					return undefined;
 				},
 				custom: {
@@ -276,8 +391,7 @@ export default function permissions(api: PermissionsAPI) {
 					read_skill: (tool) => {
 						const raw = (tool.input as Record<string, unknown>)["path"];
 						const p = typeof raw === "string" ? raw : tool.detail;
-						if (isCodingAgentSkillPath(p)) return undefined;
-						if (isPiDocsPath(p)) return undefined;
+						if (isReadOnlyBypassPath(p)) return undefined;
 						// Reuse pathVerdict semantics for non-skill read_skill targets
 						// by synthesizing a PathTool from the custom input.
 						const synthetic: PathTool = {
@@ -291,7 +405,9 @@ export default function permissions(api: PermissionsAPI) {
 							detail: tool.detail,
 						};
 						if (synthetic.path === undefined) return undefined;
-						return pathVerdict(synthetic, input.cwd, realCwd);
+						return pathVerdict(synthetic, input.cwd, realCwd, {
+							allowReadOnlyBypass: true,
+						});
 					},
 				},
 			});
