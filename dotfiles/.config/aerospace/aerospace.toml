@@ -12,7 +12,7 @@ after-login-command = []
 after-startup-command = [
   # JankyBorders has a built-in detection of already running process,
   # so it won't be run twice on AeroSpace restart
-  'exec-and-forget borders active_color=0xffFFE6B3 inactive_color=0x22f9e2af width=5.0 hidpi=on',
+  'exec-and-forget borders active_color=0xff5CC1F5 inactive_color=0x22f9e2af width=5.0 hidpi=on',
   'exec-and-forget sketchybar',
 ]
 
