@@ -365,18 +365,12 @@ export default function permissions(api: PermissionsAPI) {
 		handler(input) {
 			const realCwd = realTarget(resolve(input.cwd)) ?? input.cwd;
 			return matchTool(input.tool, {
-				read: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				edit: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
-				write: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
-				grep: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				find: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				ls: (tool) =>
-					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				read: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				edit: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				write: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				grep: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				find: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				ls: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
 				bash: async (tool) => {
 					// Gathered read-only bypass: Pi docs/examples + skills/prompts
 					// Only cat/bat/rg/grep/fd/find/ls/eza touching an allowlisted path bypass.
