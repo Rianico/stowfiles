@@ -42,5 +42,19 @@
   "editorPaddingX": 1,
   "markdown": {
     "mermaid": "streaming"
+  },
+  "retry": {
+    "enabled": true
+  },
+  "enableSkillCommands": true,
+  "fullscreenExitOutput": "transcript",
+  "subagents": {
+    "agentOverrides": {
+      "worker": {
+        "tools": "inherit",
+        "inheritSkills": true,
+        "inheritProjectContext": true
+      }
+    }
   }
 }

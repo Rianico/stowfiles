@@ -1,0 +1,12 @@
+{
+  "toolDescriptionMode": "compact",
+  "inlineToolDisplay": "summary",
+  "fleetKeybindings": {
+    "pageUp": [
+      "b"
+    ],
+    "pageDown": [
+      "f"
+    ]
+  }
+}
