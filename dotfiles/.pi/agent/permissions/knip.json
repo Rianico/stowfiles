@@ -9,5 +9,11 @@
   ],
   "project": [
     "**/*.ts"
+  ],
+  "ignore": [
+    "pi-session-*.html"
+  ],
+  "ignoreDependencies": [
+    "vitest"
   ]
 }
