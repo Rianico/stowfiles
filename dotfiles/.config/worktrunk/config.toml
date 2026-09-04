@@ -30,7 +30,7 @@ worktree-path = "{{ repo_path }}/../{{ repo }}.{{ branch | sanitize }}"
 
 [commit.generation]
 # command = "MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --disable-slash-commands --setting-sources='user' --system-prompt=''"
-command = "pi -p --approve --no-skills --no-session --tools read --models runner --system-prompt ''"
+command = "pi -p --approve --no-skills --no-session --no-extensions --no-tools --models runner --system-prompt ''"
 #
 # Inside the repository (`~/code/myproject/.worktrees/feature-auth`):
 #
