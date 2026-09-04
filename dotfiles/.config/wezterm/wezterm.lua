@@ -6,10 +6,18 @@ if wezterm.config_builder then
   config = wezterm.config_builder()
 end
 
-config.enable_kitty_keyboard = true
+config.enable_kitty_keyboard = false
 -- Encode shifted arrows as CSI-u (ESC[1;2A) so TUIs can tell Shift+↑/↓ from
 -- plain ↑/↓ without a kitty handshake (pi does not request one).
 config.enable_csi_u_key_encoding = true
+
+-- pi (TrackingEditor) needs Option+Enter / Option+Up to keep their Alt modifier.
+-- By default the RIGHT Option key (and IME forwarding on macOS) treats Option as a
+-- compose key and DROPS the modifier, so pi sees a plain Enter / plain Up arrow and
+-- app.message.followUp (alt+enter) / app.message.dequeue (alt+up) never fire.
+-- Force both Option keys to act as Meta/Alt so the modifier is preserved.
+config.send_composed_key_when_left_alt_is_pressed = false
+config.send_composed_key_when_right_alt_is_pressed = false
 
 -- Windows
 local os_name = string.lower(os.getenv("OS") or "")
@@ -70,23 +78,27 @@ config.inactive_pane_hsb = {
 
 -- keybinding
 config.disable_default_key_bindings = true
-config.leader = { key = ";", mods = "CTRL", timeout_milliseconds = 2000 }
+-- config.leader = { key = ";", mods = "CTRL", timeout_milliseconds = 2000 }
 
 local act = wezterm.action
 
 config.keys = {
+  -- pi: Option+Enter = send message (app.message.followUp), Option+Up = recall queued
+  -- messages (app.message.dequeue). Send the exact CSI-u bytes pi expects so this
+  -- works regardless of wezterm's key-encoding / IME / compose behavior.
+  { key = "Enter", mods = "ALT", action = wezterm.action.SendString("\x1b[13;3u") },
   -- pane
-  { key = "v", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-  { key = "s", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-  { key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
-  { key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
-  { key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
-  { key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
-  { key = "q", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
-  { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+  -- { key = "v", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+  -- { key = "s", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+  -- { key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
+  -- { key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
+  -- { key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
+  -- { key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
+  -- { key = "q", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
+  -- { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
 
   -- tab
-  { key = "t", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
+  -- { key = "t", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
   -- window
   { key = "n", mods = "CTRL|SHIFT", action = act.SpawnWindow },
 
@@ -99,25 +111,25 @@ config.keys = {
   { key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
 
   -- search
-  { key = "f", mods = "LEADER", action = act.Search({ Regex = "" }) },
+  -- { key = "f", mods = "LEADER", action = act.Search({ Regex = "" }) },
   -- copy mode
-  { key = "v", mods = "META", action = act.ActivateCopyMode },
+  -- { key = "v", mods = "META", action = act.ActivateCopyMode },
   -- quick select mode
   { key = "s", mods = "META", action = act.QuickSelect },
 }
 
-for i = 1, 8 do
-  table.insert(config.keys, {
-    key = tostring(i),
-    mods = "CTRL",
-    action = act.ActivateTab(i - 1),
-  })
-  table.insert(config.keys, {
-    key = tostring(i),
-    mods = "CMD",
-    action = act.ActivateTab(i - 1),
-  })
-end
+-- for i = 1, 8 do
+--   table.insert(config.keys, {
+--     key = tostring(i),
+--     mods = "CTRL",
+--     action = act.ActivateTab(i - 1),
+--   })
+--   table.insert(config.keys, {
+--     key = tostring(i),
+--     mods = "CMD",
+--     action = act.ActivateTab(i - 1),
+--   })
+-- end
 
 config.quick_select_patterns = {
   -- UUIDs (session IDs, container IDs, etc.)

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "bash.ts",
+    "gh.ts",
+    "git.ts",
+    "paths.ts",
+    "__tests__/**/*.ts"
+  ],
+  "project": [
+    "**/*.ts"
+  ],
+  "ignore": [
+    "pi-session-*.html"
+  ],
+  "ignoreDependencies": [
+    "vitest"
+  ]
+}
