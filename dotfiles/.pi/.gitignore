@@ -13,6 +13,10 @@
 !agent/permissions/**
 !agent/settings.json
 
+# default ignore generated local configs (override re-include above)
+agent/permissions/skills-lock.json
+agent/permissions/.agents/
+
 # Keep this file itself tracked
 !.gitignore
 
