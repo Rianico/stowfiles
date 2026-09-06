@@ -1,9 +1,10 @@
--- The servers that should be automatically installed
+-- Packages mason-tool-installer keeps installed (LSPs, formatters, linters).
 local lsp_servers = {
+  -- lua / shell / c / cmake / docker
   "lua_ls",
   "stylua",
-  "clangd",
   "bashls",
+  "clangd",
   "cmake",
   "dockerls",
   -- go
@@ -11,74 +12,126 @@ local lsp_servers = {
   "gofumpt",
   "goimports",
   "gomodifytags",
-  -- spelling check
+  -- misc languages
   "harper_ls",
-  -- java
   "jdtls",
-  -- slint
-  "slint_lsp",
-  -- toml
   "taplo",
-  -- json
+  -- web / data
   "jsonls",
-  -- xml
+  "html",
+  "yamlls",
+  "ts_ls",
   "lemminx",
+  "asm_lsp",
+  "mdx_analyzer",
   -- python
   "basedpyright",
   "ruff",
   -- markdown
-  "markdown_oxide",
+  "marksman",
+  "markdownlint-cli2",
+  "mdformat",
+  -- conform.nvim formatters
+  "biome",
+  "jq",
+  "kdlfmt",
+  "shfmt",
+  "prettier",
 }
 
 require("mason").setup()
+-- mason-lspconfig v2 only accepts `ensure_installed` + `automatic_enable`;
+-- the old `ui`/`pip`/`automatic_installation` keys were never honored here.
 require("mason-lspconfig").setup({
-  ui = {
-    icons = {
-      package_installed = "✓",
-      package_pending = "➜",
-      package_uninstalled = "✗",
-    },
-  },
-  pip = {
-    -- Whether to upgrade pip to the latest version in the virtual environment before installing packages.
-    upgrade_pip = true,
-  },
-  automatic_installation = true,
-  automatic_enable = true,
+  automatic_enable = false, -- vim.lsp.enable below is the single source of truth
 })
-require("mason-tool-installer").setup({
-  ensure_installed = lsp_servers,
-})
+require("mason-tool-installer").setup({ ensure_installed = lsp_servers })
 
--- Get capabilities for completion plugins
-local has_blink, blink_cmp = pcall(require, "blink.cmp")
-local capabilities
+-- mdformat auto-enables pip plugins in its own venv, which Mason can't
+-- declare -- so top them up after every mason-tool-installer run (this also
+-- covers a fresh mdformat install). Async, silent when already satisfied.
+local mdformat_plugins = { "mdformat-obsidian" }
+local mdformat_ensuring = false
 
-if has_blink then
-  -- Try to use blink.cmp's native LSP capabilities if available
-  if blink_cmp.get_lsp_capabilities then
-    capabilities = blink_cmp.get_lsp_capabilities()
-  else
-    -- If blink.cmp doesn't provide a function, use default
-    capabilities = vim.lsp.protocol.make_client_capabilities()
-  end
-else
-  -- Fallback to nvim-cmp if blink.cmp is not available
-  local has_cmp, cmp_lsp = pcall(require, "cmp_nvim_lsp")
-  if has_cmp then
-    capabilities = cmp_lsp.default_capabilities()
-  else
-    -- Fallback to default capabilities
-    capabilities = vim.lsp.protocol.make_client_capabilities()
+local function notify_async(msg, level)
+  vim.schedule(function() vim.notify(msg, level) end)
+end
+
+local function venv_python(pkg)
+  local root = vim.fn.stdpath("data") .. "/mason/packages/" .. pkg
+  for _, rel in ipairs({ "/venv/bin/python", "/venv/Scripts/python.exe" }) do
+    local py = root .. rel
+    if vim.fn.executable(py) == 1 then
+      return py
+    end
   end
 end
 
--- Ensure snippet support is enabled
-capabilities.textDocument.completion.completionItem.snippetSupport = true
+local function ensure_venv_plugins(pkg, plugins)
+  if mdformat_ensuring then
+    return
+  end
+  local py = venv_python(pkg)
+  if not py then
+    return -- host package missing; retried on the next run
+  end
+  mdformat_ensuring = true
+  local function step(i)
+    local plugin = plugins[i]
+    if not plugin then
+      mdformat_ensuring = false
+      return
+    end
+    vim.system({ py, "-m", "pip", "show", plugin }, { text = true }, function(check)
+      if check.code == 0 then
+        step(i + 1) -- already in the venv
+      else
+        notify_async("Installing " .. plugin .. " into Mason " .. pkg .. "...", vim.log.levels.INFO)
+        vim.system({ py, "-m", "pip", "install", "--disable-pip-version-check", plugin }, { text = true }, function(res)
+          if res.code == 0 then
+            notify_async(plugin .. " installed into Mason " .. pkg, vim.log.levels.INFO)
+          else
+            notify_async(plugin .. " install failed: " .. (res.stderr or ""), vim.log.levels.ERROR)
+          end
+          step(i + 1)
+        end)
+      end
+    end)
+  end
+  step(1)
+end
 
-vim.lsp.config.gopls = {
-  capabilities = capabilities,
-  on_attach = function(client, _)
+vim.api.nvim_create_autocmd("User", {
+  pattern = "MasonToolsUpdateCompleted",
+  callback = function() ensure_venv_plugins("mdformat", mdformat_plugins) end,
+})
+
+-- Server configs live in `lsp/*.lua` (one file per server, native convention).
+-- Shared capabilities (blink.cmp) apply to all of them via the `*` wildcard.
+vim.lsp.config("*", { capabilities = require("lsp.capabilities") })
+
+-- Exception to the file convention: rtp files merge plugin-last, so this
+-- leaf would lose to nvim-lspconfig's default (`openFilesOnly`). Explicit
+-- calls outrank rtp files, preserving the workspace-wide diagnostics.
+vim.lsp.config("basedpyright", {
+  settings = { basedpyright = { analysis = { diagnosticMode = "workspace" } } },
+})
+
+-- Filetypes need the same treatment: rtp lists merge plugin-last, so the
+-- plugin base would drop gopls `gosum` / bashls `zsh` and add marksman
+-- `markdown.mdx`. Explicit calls replace lists wholesale.
+vim.lsp.config("gopls", { filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" } })
+vim.lsp.config("bashls", { filetypes = { "sh", "bash", "zsh" } })
+vim.lsp.config("marksman", { filetypes = { "markdown" } })
+
+-- Client tweaks that depend on the attached server, not on static config.
+-- One LspAttach handler instead of per-server on_attach functions.
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if not client then
+      return
+    end
     if client.name == "gopls" and not client.server_capabilities.semanticTokensProvider then
       local semantic = client.config.capabilities.textDocument.semanticTokens
       client.server_capabilities.semanticTokensProvider = {
@@ -86,140 +139,31 @@ vim.lsp.config.gopls = {
         legend = { tokenModifiers = semantic.tokenModifiers, tokenTypes = semantic.tokenTypes },
         range = true,
       }
+    elseif client.name == "ruff" then
+      client.server_capabilities.hoverProvider = false -- basedpyright owns hover
     end
   end,
-  filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" },
-  root_markers = { "go.mod", "go.work", ".git" },
-  settings = {
-    gopls = {
-      gofumpt = true,
-      codelenses = {
-        gc_details = false,
-        generate = true,
-        regenerate_cgo = true,
-        run_govulncheck = true,
-        test = true,
-        tidy = true,
-        upgrade_dependency = true,
-        vendor = true,
-      },
-      hints = {
-        assignVariableTypes = true,
-        compositeLiteralFields = true,
-        compositeLiteralTypes = true,
-        constantValues = true,
-        functionTypeParameters = true,
-        parameterNames = true,
-        rangeVariableTypes = true,
-      },
-      analyses = {
-        nilness = true,
-        unusedparams = true,
-        unusedwrite = true,
-        useany = true,
-      },
-      usePlaceholders = true,
-      completeUnimported = true,
-      staticcheck = true,
-      directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules" },
-      semanticTokens = true,
-    },
-  },
-}
-
-vim.lsp.config.lua_ls = {
-  capabilities = capabilities,
-  settings = {
-    Lua = {
-      runtime = {
-        version = "LuaJIT",
-      },
-      diagnostics = {
-        globals = { "vim", "require" },
-      },
-      workspace = {
-        library = vim.api.nvim_get_runtime_file("", true),
-      },
-      telemetry = { enable = false },
-    },
-  },
-}
-
-vim.lsp.config.ruff = {
-  capabilities = capabilities,
-  cmd_env = { RUFF_TRACE = "messages" },
-  init_options = {
-    settings = {
-      logLevel = "error",
-    },
-  },
-  on_attach = function(client, _)
-    -- Disable hover in favor of Pyright
-    client.server_capabilities.hoverProvider = false
-  end,
-}
-
-vim.lsp.config.basedpyright = {
-  capabilities = vim.lsp.protocol.make_client_capabilities(),
-  settings = {
-    basedpyright = {
-      analysis = {
-        diagnosticMode = "workspace",
-        inlayHints = {
-          callArgumentNames = true,
-        },
-      },
-    },
-  },
-}
-
-vim.lsp.config.slint_lsp = {
-  capabilities = capabilities,
-  command = { "slint-lsp" },
-  highlightingModeRegex = "slint",
-}
-
-vim.lsp.config.bashls = {
-  capabilities = capabilities,
-  filetypes = { "sh", "bash", "zsh" },
-}
-
-vim.lsp.config("harper-ls", {
-  capabilities = capabilities,
-  settings = {
-    ["harper-ls"] = {
-      linters = {
-        SentenceCapitalization = false,
-        SpellCheck = false,
-      },
-    },
-  },
 })
 
-vim.lsp.config("markdown_oxide", {
-  -- Ensure that dynamicRegistration is enabled! This allows the LS to take into account actions like the
-  -- Create Unresolved File code action, resolving completions for unindexed code blocks, ...
-  capabilities = vim.tbl_deep_extend("force", capabilities, {
-    workspace = {
-      didChangeWatchedFiles = {
-        dynamicRegistration = true,
-      },
-    },
-  }),
-})
-
--- Use individual server setup instead of vim.lsp.enable to have control over capabilities
+-- The single source of truth for active servers (automatic_enable is off).
 vim.lsp.enable({
-  "basedpyright",
-  "taplo",
   "asm_lsp",
   "bashls",
-  "harper-ls",
-  "slint_lsp",
-  "lua_ls",
+  "basedpyright",
+  "clangd",
+  "cmake",
+  "dockerls",
   "gopls",
-  "yamlls",
-  "markdown_oxide",
-  "ts_ls",
+  "harper_ls",
+  "html",
+  "jdtls",
   "jsonls",
+  "lemminx",
+  "lua_ls",
+  "marksman",
+  "mdx_analyzer",
+  "ruff",
+  "taplo",
+  "ts_ls",
+  "yamlls",
 })

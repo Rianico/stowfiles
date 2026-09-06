@@ -57,7 +57,7 @@ vim.diagnostic.config({
   severity_sort = true,
   float = {
     border = "rounded",
-    ource = true,
+    source = "if_many",
   },
 })
 -- for ripgrep

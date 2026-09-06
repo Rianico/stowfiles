@@ -4,10 +4,10 @@ return {
   { "folke/lazy.nvim" },
   -- lsp
   {
-    { "williamboman/mason.nvim", version = "v1.11.x" },
+    { "mason-org/mason.nvim", version = "v2.x" },
     {
-      "williamboman/mason-lspconfig.nvim",
-      version = "v1.32.x",
+      "mason-org/mason-lspconfig.nvim",
+      version = "v2.x",
     },
     { "WhoIsSethDaniel/mason-tool-installer" },
     { "neovim/nvim-lspconfig" },
@@ -25,6 +25,10 @@ return {
     opts = {},
     init = function() vim.o.formatexpr = "v:lua.require'conform'.formatexpr()" end,
     lazy = true,
+  },
+  {
+    "mfussenegger/nvim-lint",
+    event = { "BufReadPre", "BufNewFile" },
   },
   {
     "ray-x/lsp_signature.nvim",

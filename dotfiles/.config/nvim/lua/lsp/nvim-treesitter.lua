@@ -25,7 +25,6 @@ local languages = {
   "sql",
   "scala",
   "regex",
-  "slint",
   "toml",
   "vim",
   "yaml",

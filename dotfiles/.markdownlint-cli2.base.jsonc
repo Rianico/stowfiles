@@ -1,0 +1,25 @@
+{
+  // Shared base config for markdownlint-cli2 (installed via Mason).
+  // Wired explicitly from nvim-lint (nvim/lua/lsp/nvim-lint.lua) because
+  // stdin linting runs with nvim's cwd, so file-tree discovery is unreliable.
+  // Per-project .markdownlint-cli2.jsonc / .markdownlint.json files layer on top.
+  "default": true,
+
+  // Prose is soft-wrapped by the editor; a hard line-length fights both
+  // wrapping and mdformat (which never rewraps paragraphs).
+  "MD013": false,
+
+  // Allow the same heading text under *different* parents
+  // (e.g. a "Usage" section per tool); still catches true duplicates.
+  "MD024": { "siblings_only": true },
+
+  // Allow trailing ? and ! in headings ("How do I ...?"); keep .,;:
+  "MD026": { "punctuation": ".,;:" },
+
+  // Keep the no-inline-html rule but allow common harmless elements.
+  "MD033": { "allowed_elements": ["br", "kbd", "sub", "sup", "details", "summary"] },
+
+  // A front-matter `title:` counts as the file's first heading,
+  // for docs-style files that start with YAML front matter.
+  "MD041": { "front_matter_title": "^\\s*title\\s*[:=]" }
+}

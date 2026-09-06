@@ -6,6 +6,9 @@ conform.setup({
     lua = { "stylua", lsp_format = "fallback" },
     go = { "goimports", "gofumpt" },
     javascript = { "biome" },
+    typescript = { "biome" },
+    javascriptreact = { "biome" },
+    typescriptreact = { "biome" },
     -- Conform will run multiple formatters sequentially
     python = {
       -- refer to https://docs.astral.sh/ruff/
@@ -20,6 +23,11 @@ conform.setup({
     toml = { "taplo" },
     json = { "jq" },
     kdl = { "kdlfmt" },
+    markdown = { "mdformat" },
+    html = { "prettier" },
+    sh = { "shfmt" },
+    bash = { "shfmt" },
+    zsh = { "shfmt" },
   },
   default_format_opts = {
     lsp_format = "fallback",
