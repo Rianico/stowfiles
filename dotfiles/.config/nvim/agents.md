@@ -72,3 +72,12 @@ nvim --headless +"checkhealth vim.lsp" +"w! /tmp/health.txt" +"qa!"
   `nvim-lint.lua`, `capabilities.lua`, `nvim-treesitter.lua`, `metals.lua`
 - `ftplugin/` — per-filetype editor behavior (`wrap`+`spell` via `config.text`);
   orthogonal to `lsp/` (server processes). Never start LSP from ftplugin.
+
+## pi-lens alignment
+
+- Global `~/.pi-lens/lsp.json` routes pi-lens through Mason binaries
+  (`*-mason` servers, built-ins disabled). Don't duplicate it per-project.
+- `.luarc.json` is the shared Lua settings file: `Lua.`-prefixed keys, mirrors
+  `lsp/lua_ls.lua` (which additionally sets the nvim runtime `library`).
+  A bare `diagnostics.globals` (no `Lua.` prefix) is silently ignored.
+- Project `.pi-lens/lsp.json` sets only `warmFiles: ["init.lua"]`.

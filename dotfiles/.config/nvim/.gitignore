@@ -78,3 +78,6 @@ tags
 /vim-*.patch
 
 CMakeUserPresets.json
+
+# pi-lens runtime state (session caches created by diagnostics runs)
+/.pi-lens/sessions/

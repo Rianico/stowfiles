@@ -1,0 +1,10 @@
+{
+    "Lua.runtime.version": "LuaJIT",
+    "Lua.diagnostics.globals": [
+        "vim",
+        "require",
+        "Snacks"
+    ],
+    "Lua.workspace.checkThirdParty": false,
+    "Lua.telemetry.enable": false
+}
