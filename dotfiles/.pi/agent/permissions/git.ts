@@ -3,7 +3,12 @@ import {
   matchCommand,
   matchTool,
   request,
-  type PermissionsAPI,
+} from "@rianico/pi-permission-lsz";
+import type {
+  PermissionInput,
+  PermissionsAPI,
+  ShellToken,
+  SimpleCommand,
 } from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
@@ -19,20 +24,27 @@ const FORCE_FLAGS = [
   "--force",
   "--force-with-lease",
   "--force-if-includes",
-];
-const FORCE_VALUE_FLAGS = ["--force-with-lease=", "--force-if-includes="];
+] as const;
+
+const FORCE_VALUE_FLAGS = [
+  "--force-with-lease=",
+  "--force-if-includes=",
+] as const;
 
 const gitPush = matchCommand({
   program: "git",
   subcommands: ["push"],
   valueFlags: gitValueFlags,
-  where: (command) => !command.hasFlag("--dry-run", "-n"),
-  onMatch: ({ commands }) => {
-    const forcePush = commands.some(
-      (command) =>
+  where: (command: SimpleCommand): boolean =>
+    !command.hasFlag("--dry-run", "-n"),
+  onMatch: ({ commands }: { commands: readonly SimpleCommand[] }) => {
+    const forcePush: boolean = commands.some(
+      (command: SimpleCommand): boolean =>
         command.hasFlag(...FORCE_FLAGS) ||
-        command.args.some((arg) =>
-          FORCE_VALUE_FLAGS.some((flag) => arg.text.startsWith(flag)),
+        command.args.some((arg: ShellToken): boolean =>
+          FORCE_VALUE_FLAGS.some(
+            (flag: string): boolean => arg.text.startsWith(flag),
+          ),
         ),
     );
 
@@ -40,7 +52,9 @@ const gitPush = matchCommand({
       guidance: forcePush
         ? "Force push detected — review the remote, branch, and rewritten history before approving."
         : "Review the remote, branch, and any force flags before approving.",
-      highlight: commands.map((command) => command.span),
+      highlight: commands.map(
+        (command: SimpleCommand) => command.span,
+      ),
       approveLabel: "Push",
       rejectLabel: "Cancel push",
     });
@@ -59,12 +73,14 @@ const gitResetHard = matchCommand({
   program: "git",
   subcommands: ["reset"],
   valueFlags: gitValueFlags,
-  where: (command) => command.hasFlag("--hard"),
-  onMatch: ({ commands }) =>
+  where: (command: SimpleCommand): boolean => command.hasFlag("--hard"),
+  onMatch: ({ commands }: { commands: readonly SimpleCommand[] }) =>
     request({
       guidance:
         "Hard reset discards uncommitted changes and moves HEAD — verify the target commit/branch and that no work will be lost before approving.",
-      highlight: commands.map((command) => command.span),
+      highlight: commands.map(
+        (command: SimpleCommand) => command.span,
+      ),
       approveLabel: "Reset",
       rejectLabel: "Cancel reset",
     }),
@@ -74,11 +90,11 @@ const gitResetHard = matchCommand({
 // Registration — add further git gates below (rebase, …)
 // ---------------------------------------------------------------------------
 
-export default function permissions(api: PermissionsAPI) {
+export default function permissions(api: PermissionsAPI): void {
   api.onToolUse({
     name: "git push",
     description: "Ask before the agent pushes commits to a remote.",
-    handler(input) {
+    handler(input: PermissionInput) {
       return matchTool(input.tool, { bash: gitPush });
     },
   });
@@ -86,7 +102,7 @@ export default function permissions(api: PermissionsAPI) {
   api.onToolUse({
     name: "git reset --hard",
     description: "Ask before a hard reset that discards uncommitted changes.",
-    handler(input) {
+    handler(input: PermissionInput) {
       return matchTool(input.tool, { bash: gitResetHard });
     },
   });
