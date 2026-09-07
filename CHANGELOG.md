@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- **pi-lens:** migrate deprecated LSP config to canonical locations
 - **permissions:** suppress knip false positives for permission entry points
 - **permissions:** address review nits and knip false positives
 

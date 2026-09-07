@@ -1,0 +1,7 @@
+{
+  "lsp": {
+    "warmFiles": [
+      "init.lua"
+    ]
+  }
+}
