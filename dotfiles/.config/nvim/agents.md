@@ -8,7 +8,7 @@
 - **Activate:** explicit `vim.lsp.enable({ … })` allowlist in `lua/lsp/mason.lua`;
   `automatic_enable = false`. Do NOT re-enable auto — it attaches junk
   (`pylsp`, …) that is installed but unwanted.
-- **Format:** conform.nvim (`lua/lsp/conform.lua`). **Lint:** nvim-lint (`lua/lsp/nvim-lint.lua`).
+- **Format:** conform.nvim (`lua/lsp/conform.lua`) — `oxfmt` for JS/TS/JSX/TSX/JSON/JSONC/HTML/CSS/YAML. **Lint:** nvim-lint (`lua/lsp/nvim-lint.lua`) — `oxlint` for JS/TS/JSX/TSX.
   No null-ls. Formatting policy: conform first, `lsp_format = "fallback"`.
 - **Capabilities:** shared module `lua/lsp/capabilities.lua` (blink.cmp > nvim-cmp > stock),
   applied via `vim.lsp.config("*", …)` wildcard.
@@ -46,10 +46,10 @@
   `package.json` root AND a TS **5.x** SDK in the project (TS 7 dropped
   `tsserverlibrary.js` → initialize fails).
 - **Exclusions are deliberate**: no `isort/yapf/pyflakes/python-lsp-server/mypy`
-  (superseded by ruff+basedpyright); `prettier` scoped to `html` only (biome owns
-  JS/TS in both conform and nvim-lint `biomejs`); `biome/jq/kdlfmt/shfmt` in
-  ensure even though they're formatters (conform needs them installed).
-- Deleted: `markdown_oxide` (→ marksman), `slint` (server + parser + package).
+  (superseded by ruff+basedpyright); no `biome`/`prettier` (superseded by
+  `oxfmt`/`oxlint` for JS/TS/JSON/HTML/CSS/YAML); `oxlint/oxfmt/jq/kdlfmt/shfmt` in
+  ensure even though `oxfmt`/`jq`/`kdlfmt`/`shfmt` are formatters (conform needs them installed).
+- Deleted: `markdown_oxide` (→ marksman), `slint` (server + parser + package), `biome`/`prettier` (→ `oxfmt`/`oxlint`).
 - `lazy-lock.json` pins versions — changing a spec's repo/version does NOTHING
   until `:Lazy! update <name>` (lockfile wins). Back it up before major bumps.
 
@@ -65,14 +65,43 @@ nvim --headless +"checkhealth vim.lsp" +"w! /tmp/health.txt" +"qa!"
 # live attach needs event processing: vim.wait, NOT :sleep
 ```
 
-## Layout
+## Layout / Code Structure (stable — update only when adding/removing top-level entries)
 
-- `lsp/` — server configs (8 files) + `ts_ls.lua` inlay hints (dormant until `grh` toggle)
-- `lua/lsp/` — `mason.lua` (install/enable/hook/LspAttach), `conform.lua`,
-  `nvim-lint.lua`, `capabilities.lua`, `nvim-treesitter.lua`, `metals.lua`
-- `ftplugin/` — per-filetype editor behavior (`wrap`+`spell` via `config.text`);
-  orthogonal to `lsp/` (server processes). Never start LSP from ftplugin.
+```
+.  (~/.config/nvim — dotfiles/stowfiles/dotfiles/.config/nvim)
+├── init.lua                 — entry: config.lazy → basic → filetype.add → keybindings → lsp.* → config.*
+├── lsp/                     — native LSP configs (return {…}), one file per server (nvim 0.12 `lsp/*.lua`)
+│   ├── basedpyright.lua, ruff.lua, bashls.lua, gopls.lua
+│   ├── lua_ls.lua, harper_ls.lua, marksman.lua
+│   └── ts_ls.lua            — inlayHints only (dormant until `grh` toggle)
+├── lua/
+│   ├── basic.lua            — options, diagnostics, globals, folds (ufo), loader
+│   ├── keybindings.lua      — which-key, diagnostics/nav, git/file ops
+│   ├── config/              — lazy.lua (bootstrap + spec import), mini.lua, harpoon2.lua, marks.lua, text.lua
+│   ├── lsp/                 — orchestration (NOT server configs)
+│   │   ├── mason.lua        — mason + mason-lspconfig + mason-tool-installer ensure list, vim.lsp.enable allowlist, LspAttach tweaks, mdformat venv hook
+│   │   ├── conform.lua      — conform.nvim formatters_by_ft + format_on_save + stylua/rustfmt/taplo opts (oxfmt for frontend)
+│   │   ├── nvim-lint.lua    — nvim-lint linters_by_ft + autocmd + markdownlint --config wiring (oxlint for frontend)
+│   │   ├── capabilities.lua — shared blink.cmp → cmp_nvim_lsp → stock, via vim.lsp.config("*",…)
+│   │   ├── nvim-treesitter.lua — parser install + highlight/indent enable
+│   │   ├── metals.lua       — nvim-metals (Scala, standalone)
+│   │   └── lspsaga.lua      — lspsaga UI
+│   ├── plugins/             — lazy specs (import = "plugins"): avante, blink, dap-core, git-stuff, primary, rustaceanvim, snacks, theme
+│   └── util/                — cmp.lua, ui.lua, init.lua (helpers for LazyVim/base46)
+├── ftplugin/                — per-filetype editor behavior only (wrap+spell via config.text)
+│   │                          orthogonal to lsp/ (server processes); never start LSP from ftplugin
+│   ├── markdown.lua, text.lua, gitcommit.lua, typst.lua, plaintex.lua, scala.lua, sbt.lua
+├── .luarc.json              — shared Lua settings (Lua.*), mirrors lsp/lua_ls.lua library; project .pi-lens/lsp.json sets warmFiles
+├── lua/.luarc.json          — duplicate for lua/ subdir tooling
+├── lazy-lock.json           — pinned plugin versions (lockfile wins over spec)
+├── .pi-lens/lsp.json        — warmFiles: ["init.lua"]
+└── ~                        — stow artifact, ignore
+```
 
+- `lsp/*.lua` are **config data only** (no `setup()`); activation is the allowlist in `lua/lsp/mason.lua`.
+- `lua/lsp/` is **orchestration**; `lsp/` is **per-server config** — keep exception overrides (basedpyright diagnosticMode, gopls/bashls/marksman filetypes) in the documented block in `mason.lua` (rtp merge plugin-last, see Precedence rules).
+- `ftplugin/` never starts LSP; formatting/linting lives in `lua/lsp/conform.lua` + `lua/lsp/nvim-lint.lua`.
+- Adding a new language: `lsp/<server>.lua` + ensure entry + filetype + treesitter parser + enable in `mason.lua` allowlist.
 ## pi-lens alignment
 
 - Global `~/.pi-lens/lsp.json` routes pi-lens through Mason binaries

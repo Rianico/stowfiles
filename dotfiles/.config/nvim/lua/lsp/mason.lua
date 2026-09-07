@@ -31,12 +31,12 @@ local lsp_servers = {
   "marksman",
   "markdownlint-cli2",
   "mdformat",
-  -- conform.nvim formatters
-  "biome",
+  -- conform.nvim formatters / nvim-lint linters (frontend: oxlint + oxfmt)
+  "oxlint",
+  "oxfmt",
   "jq",
   "kdlfmt",
   "shfmt",
-  "prettier",
 }
 
 require("mason").setup()

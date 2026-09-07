@@ -5,10 +5,10 @@ local lint = require("lint")
 
 lint.linters_by_ft = {
   markdown = { "markdownlint-cli2" },
-  javascript = { "biomejs" },
-  typescript = { "biomejs" },
-  javascriptreact = { "biomejs" },
-  typescriptreact = { "biomejs" },
+  javascript = { "oxlint" },
+  typescript = { "oxlint" },
+  javascriptreact = { "oxlint" },
+  typescriptreact = { "oxlint" },
 }
 
 -- Explicit --config: nvim-lint pipes stdin with nvim's cwd, so tree

@@ -5,10 +5,10 @@ conform.setup({
   formatters_by_ft = {
     lua = { "stylua", lsp_format = "fallback" },
     go = { "goimports", "gofumpt" },
-    javascript = { "biome" },
-    typescript = { "biome" },
-    javascriptreact = { "biome" },
-    typescriptreact = { "biome" },
+    javascript = { "oxfmt" },
+    typescript = { "oxfmt" },
+    javascriptreact = { "oxfmt" },
+    typescriptreact = { "oxfmt" },
     -- Conform will run multiple formatters sequentially
     python = {
       -- refer to https://docs.astral.sh/ruff/
@@ -21,10 +21,13 @@ conform.setup({
     },
     rust = { "rustfmt", lsp_format = "fallback" },
     toml = { "taplo" },
-    json = { "jq" },
+    json = { "oxfmt" },
+    jsonc = { "oxfmt" },
+    html = { "oxfmt" },
+    css = { "oxfmt" },
+    yaml = { "oxfmt" },
     kdl = { "kdlfmt" },
     markdown = { "mdformat" },
-    html = { "prettier" },
     sh = { "shfmt" },
     bash = { "shfmt" },
     zsh = { "shfmt" },
