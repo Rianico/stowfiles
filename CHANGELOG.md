@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- **wezterm:** match package-manager/source refs in quick select
 - **nvim:** migrate frontend to oxlint/oxfmt with granular pre-push auto-push
 - **herdr:** add herdr agent state extension
 - **permissions:** gather pi docs/examples and skill paths into read-only bypass

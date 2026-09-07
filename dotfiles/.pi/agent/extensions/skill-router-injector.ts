@@ -90,31 +90,35 @@ export default function skillRouterInjector(pi: ExtensionAPI) {
     const loaded = event.systemPromptOptions?.skills ?? [];
     if (loaded.length === 0) return;
 
-    const blocks: string[] = [];
+    const routers: { skill: typeof loaded[number]; hintLines: string[] }[] = [];
     for (const skill of loaded) {
       const parsed = parseRouterHint(skill.filePath);
       if (!parsed) continue;
-      // Always inject per loaded router — global extension, per-cwd filtered by loaded list
-      const hintBody = parsed.hintLines.map(l => `  - \`${l}\``).join("\n");
-      blocks.push(`**Router: ${skill.name}** (\`metadata.manage: [${parsed.managed.join(", ")}]\`)\n${hintBody}\n  → Load via \`Read $SKILL_DIR/subskills/<domain>/SKILL.md\` or \`/skill:${skill.name} <domain>\``);
+      routers.push({ skill, hintLines: parsed.hintLines });
     }
-
-    if (blocks.length === 0) return;
-
+    if (routers.length === 0) return;
+    // Sort for stable output; placeholder example from first sorted router
+    routers.sort((a, b) => a.skill.name.localeCompare(b.skill.name));
+    const firstSub = routers[0].hintLines[0]?.split(/\s+/)[0] ?? "<sub_skill>";
+    const example = `${routers[0].skill.name}/subskills/${firstSub}/SKILL.md`;
+    const blocks = routers.map(({ skill, hintLines }) => {
+      const hintBody = hintLines.map(l => `- \`${l}\``).join("\n");
+      return `--- ${skill.filePath} ---\n\n${hintBody}`;
+    });
     // Cap total injection — keep context lean (prompt-customizer pattern)
     const capped = blocks.slice(0, 5);
     const truncatedNote = blocks.length > 5 ? `\n… ${blocks.length - 5} more routers hidden — Read parent SKILL.md for full.\n` : "";
-
     return {
       systemPrompt:
         event.systemPrompt +
         `
+# Skill Router
 
-## Skill Router Arguments (injected — Codex \`argument-hint\` compat)
-Router skills enumerate hidden subskills via \`argument-hint\` outside 300c Description Budget. Leaves with \`managed-by\` pay 0 Metadata Cost and load via \`Read\`, not \`Skill\`.
+Subskills live under \`<parent>/subskills/<sub_skill>/SKILL.md\` (e.g. \`${example}\`, resolved as \`dirname(parent SKILL.md)/subskills/<sub_skill>/SKILL.md\`).
 
 ${capped.join("\n\n")}${truncatedNote}
-Use domain verbatim; prefer domain over description verbs.
+
+Use sub_skill verbatim; prefer sub_skill over description verbs. Call them like general skills.
 `,
     };
   });
