@@ -4,3 +4,5 @@ dotfiles/.pi/agent/permissions/skills-lock.json
 dotfiles/.pi/agent/permissions/.agents/
 dotfiles/.config/worktrunk/approvals.toml
 dotfiles/.config/nvim/lua/chadrc.lua
+
+.pi-lens
