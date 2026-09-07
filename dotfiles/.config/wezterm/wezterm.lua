@@ -142,6 +142,10 @@ config.quick_select_patterns = {
   "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}",
   -- URLs
   "https?://[^\\s]+",
+  -- Package-manager / source references (npm:pi-simplify, git:github.com/org/repo)
+  -- Must precede the generic "session names" pattern below so the whole
+  -- `scheme:name` token is matched as one unit (regex is leftmost-first).
+  "\\b(?:npm|pnpm|yarn|git|gh|github|brew|cargo|pip|gem|deno|npx):[a-zA-Z0-9@][a-zA-Z0-9@/._-]*",
   -- File paths
   "[/~]?[a-zA-Z0-9_/.-]+/[a-zA-Z0-9_.-]+",
   -- Session names, container names (alphanumeric, dash, underscore)
