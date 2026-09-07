@@ -1,40 +1,10 @@
 import {
-	gitValueFlags,
-	matchCommand,
-	matchTool,
-	request,
-	type HighlightSpan,
-	type PermissionsAPI,
-	type SimpleCommand,
+  gitValueFlags,
+  matchCommand,
+  matchTool,
+  request,
+  type PermissionsAPI,
 } from "@rianico/pi-permission-lsz";
-
-// ---------------------------------------------------------------------------
-// Gate: git commit
-// ---------------------------------------------------------------------------
-//
-// `--dry-run` performs no commit, so it is excluded rather than prompting.
-// Note `-n` is NOT excluded here: for `commit` it means `--no-verify`, and the
-// commit does happen.
-
-const gitCommit = matchCommand({
-	program: "git",
-	subcommands: ["commit"],
-	valueFlags: gitValueFlags,
-	where: (command) => !command.hasFlag("--dry-run"),
-	onMatch: ({ commands }) => {
-		const highlight = commands.flatMap((command) => {
-			const message = messageSpans(command);
-			return message.length > 0 ? message : [command.span];
-		});
-
-		return request({
-			guidance: "Review the commit message before approving.",
-			highlight,
-			approveLabel: "Commit",
-			rejectLabel: "Cancel commit",
-		});
-	},
-});
 
 // ---------------------------------------------------------------------------
 // Gate: git push
@@ -45,107 +15,79 @@ const gitCommit = matchCommand({
 // `-n`/`--dry-run` performs no push, so it is excluded rather than prompting.
 
 const FORCE_FLAGS = [
-	"-f",
-	"--force",
-	"--force-with-lease",
-	"--force-if-includes",
+  "-f",
+  "--force",
+  "--force-with-lease",
+  "--force-if-includes",
 ];
 const FORCE_VALUE_FLAGS = ["--force-with-lease=", "--force-if-includes="];
 
 const gitPush = matchCommand({
-	program: "git",
-	subcommands: ["push"],
-	valueFlags: gitValueFlags,
-	where: (command) => !command.hasFlag("--dry-run", "-n"),
-	onMatch: ({ commands }) => {
-		const forcePush = commands.some(
-			(command) =>
-				command.hasFlag(...FORCE_FLAGS) ||
-				command.args.some((arg) =>
-					FORCE_VALUE_FLAGS.some((flag) => arg.text.startsWith(flag)),
-				),
-		);
+  program: "git",
+  subcommands: ["push"],
+  valueFlags: gitValueFlags,
+  where: (command) => !command.hasFlag("--dry-run", "-n"),
+  onMatch: ({ commands }) => {
+    const forcePush = commands.some(
+      (command) =>
+        command.hasFlag(...FORCE_FLAGS) ||
+        command.args.some((arg) =>
+          FORCE_VALUE_FLAGS.some((flag) => arg.text.startsWith(flag)),
+        ),
+    );
 
-		return request({
-			guidance: forcePush
-				? "Force push detected — review the remote, branch, and rewritten history before approving."
-				: "Review the remote, branch, and any force flags before approving.",
-			highlight: commands.map((command) => command.span),
-			approveLabel: "Push",
-			rejectLabel: "Cancel push",
-		});
-	},
+    return request({
+      guidance: forcePush
+        ? "Force push detected — review the remote, branch, and rewritten history before approving."
+        : "Review the remote, branch, and any force flags before approving.",
+      highlight: commands.map((command) => command.span),
+      approveLabel: "Push",
+      rejectLabel: "Cancel push",
+    });
+  },
 });
 
 // ---------------------------------------------------------------------------
-// Shared helpers
+// Gate: git reset --hard
 // ---------------------------------------------------------------------------
+//
+// `--hard` discards uncommitted changes and moves HEAD, so it is gated.
+// Variants without `--hard` (`--soft`, `--mixed`, `--keep`, or no mode flag)
+// remain ungated — they do not discard tracked work in the same way.
 
-const MESSAGE_LONG_FLAGS = ["--message", "--file"];
-const MESSAGE_SHORT_CHARS = ["m", "F"];
-
-/**
- * Collect the tokens that carry a commit message so the Approver can review
- * exactly that evidence: `-m`/`--message` values, `-F`/`--file` targets, and
- * combined short forms such as `-am` or `-aF`. A value attached to the flag
- * token itself (`-mfoo`, `--message=inline`) is highlighted as part of that
- * token; a separate value token is highlighted and skipped. Returns an empty
- * array when the invocation carries no explicit message flag.
- */
-function messageSpans(command: SimpleCommand): HighlightSpan[] {
-	const spans: HighlightSpan[] = [];
-	const args = command.args;
-
-	for (let index = 0; index < args.length; index += 1) {
-		const arg = args[index];
-		if (!arg) continue;
-
-		const text = arg.text;
-		const isLongMessage = MESSAGE_LONG_FLAGS.some(
-			(flag) => text === flag || text.startsWith(`${flag}=`),
-		);
-		const shortBody = /^-[^-]/.test(text) ? text.slice(1) : "";
-		const messageCharIndex = [...shortBody].findIndex((char) =>
-			MESSAGE_SHORT_CHARS.includes(char),
-		);
-		const isShortMessage = shortBody.length > 0 && messageCharIndex !== -1;
-
-		if (!isLongMessage && !isShortMessage) continue;
-
-		spans.push(arg);
-		const valueAttached =
-			text.includes("=") ||
-			(isShortMessage && shortBody.slice(messageCharIndex + 1) !== "");
-		if (valueAttached) continue;
-
-		const value = args[index + 1];
-		if (value) {
-			spans.push(value);
-			index += 1;
-		}
-	}
-
-	return spans;
-}
+const gitResetHard = matchCommand({
+  program: "git",
+  subcommands: ["reset"],
+  valueFlags: gitValueFlags,
+  where: (command) => command.hasFlag("--hard"),
+  onMatch: ({ commands }) =>
+    request({
+      guidance:
+        "Hard reset discards uncommitted changes and moves HEAD — verify the target commit/branch and that no work will be lost before approving.",
+      highlight: commands.map((command) => command.span),
+      approveLabel: "Reset",
+      rejectLabel: "Cancel reset",
+    }),
+});
 
 // ---------------------------------------------------------------------------
-// Registration — add further git gates below (rebase, reset --hard, …)
+// Registration — add further git gates below (rebase, …)
 // ---------------------------------------------------------------------------
 
 export default function permissions(api: PermissionsAPI) {
-	api.onToolUse({
-		name: "git commit",
-		description: "Ask before the agent creates a commit.",
-		handler(input) {
-			return matchTool(input.tool, { bash: gitCommit });
-		},
-	});
+  api.onToolUse({
+    name: "git push",
+    description: "Ask before the agent pushes commits to a remote.",
+    handler(input) {
+      return matchTool(input.tool, { bash: gitPush });
+    },
+  });
 
-	api.onToolUse({
-		name: "git push",
-		description: "Ask before the agent pushes commits to a remote.",
-		handler(input) {
-			return matchTool(input.tool, { bash: gitPush });
-		},
-	});
+  api.onToolUse({
+    name: "git reset --hard",
+    description: "Ask before a hard reset that discards uncommitted changes.",
+    handler(input) {
+      return matchTool(input.tool, { bash: gitResetHard });
+    },
+  });
 }
