@@ -9,6 +9,9 @@ lint.linters_by_ft = {
   typescript = { "oxlint" },
   javascriptreact = { "oxlint" },
   typescriptreact = { "oxlint" },
+  sh = { "shellcheck" },
+  bash = { "shellcheck" },
+  zsh = { "shellcheck" },
 }
 
 -- Explicit --config: nvim-lint pipes stdin with nvim's cwd, so tree

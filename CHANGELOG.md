@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-- **permissions:** replace git commit guard with git reset --hard
+- **nvim:** add shellcheck and wire shfmt/shellcheck for shell scripts
+- **permissions:** replace git commit guard with git reset --hard (#3)
 - **wezterm:** match package-manager/source refs in quick select
 - **nvim:** migrate frontend to oxlint/oxfmt with granular pre-push auto-push
 - **herdr:** add herdr agent state extension

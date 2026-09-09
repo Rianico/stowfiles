@@ -36,6 +36,7 @@ local lsp_servers = {
   "oxfmt",
   "jq",
   "kdlfmt",
+  "shellcheck",
   "shfmt",
 }
 
