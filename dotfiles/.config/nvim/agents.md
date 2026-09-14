@@ -37,10 +37,15 @@
   `~/markdownlint-cli2.base.jsonc` (stowed from `dotfiles/`), wired explicitly
   because nvim-lint pipes stdin with nvim's cwd (tree discovery unreliable).
   Per-project configs layer on top. `<leader>mF` runs `--fix` (needs file path).
-- **Mason can't inject pip plugins into its venvs.** `mdformat-obsidian` is ensured
-  in code: `MasonToolsUpdateCompleted` hook in `lua/lsp/mason.lua` pip-installs
-  missing entries of `mdformat_plugins` into `mason/packages/mdformat/venv`.
-  Mason's mdformat is otherwise bare CommonMark (no GFM/frontmatter).
+- **Mason can't inject pip plugins into its venvs.** `mdformat-obsidian` + `mdformat-frontmatter`
+  are ensured in code: `MasonToolsUpdateCompleted` hook in `lua/lsp/mason.lua` pip-installs
+  missing entries of `mdformat_plugins` into `mason/packages/mdformat/venv`. Without
+  `mdformat-frontmatter`, mdformat mangles YAML frontmatter into a horizontal rule +
+  escaped paragraph (skill files get destroyed). Mason's mdformat is otherwise bare
+  CommonMark (no GFM).
+- **mdformat rewrites ordered lists** (`2.`/`3.` → `1.`/`1.`) unless `--number` is
+  passed — data loss on skill files. `conform.formatters.mdformat` in `lua/lsp/conform.lua`
+  sets `args = { "--number", "-" }`; keep that flag if you touch it.
 - **mdx_analyzer needs more than config**: `.mdx` filetype doesn't exist upstream —
   mapped in `init.lua` via `vim.filetype.add` (also `gotmpl`); server needs a
   `package.json` root AND a TS **5.x** SDK in the project (TS 7 dropped

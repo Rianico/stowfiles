@@ -51,7 +51,7 @@ require("mason-tool-installer").setup({ ensure_installed = lsp_servers })
 -- mdformat auto-enables pip plugins in its own venv, which Mason can't
 -- declare -- so top them up after every mason-tool-installer run (this also
 -- covers a fresh mdformat install). Async, silent when already satisfied.
-local mdformat_plugins = { "mdformat-obsidian" }
+local mdformat_plugins = { "mdformat-obsidian", "mdformat-frontmatter" }
 local mdformat_ensuring = false
 
 local function notify_async(msg, level)

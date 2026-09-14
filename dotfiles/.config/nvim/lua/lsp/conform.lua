@@ -89,6 +89,14 @@ conform.formatters.taplo = {
   append_args = { "--option", "reorder_keys=true" },
 }
 
+-- mdformat reads stdin (`-`) but defaults to markdown-it-py's list rendering,
+-- which rewrites `2.`/`3.` to `1.`/`1.` (data loss on skill files). `--number`
+-- preserves the author's literal ordering. Frontmatter is handled by the
+-- mdformat-frontmatter plugin (see lua/lsp/mason.lua mdformat_plugins).
+conform.formatters.mdformat = {
+  args = { "--number", "-" },
+}
+
 vim.keymap.set("", "=G", function()
   require("conform").format({ async = true }, function(err)
     if not err then
