@@ -8,7 +8,7 @@
 - **Activate:** explicit `vim.lsp.enable({ … })` allowlist in `lua/lsp/mason.lua`;
   `automatic_enable = false`. Do NOT re-enable auto — it attaches junk
   (`pylsp`, …) that is installed but unwanted.
-- **Format:** conform.nvim (`lua/lsp/conform.lua`) — `oxfmt` for JS/TS/JSX/TSX/JSON/JSONC/HTML/CSS/YAML. **Lint:** nvim-lint (`lua/lsp/nvim-lint.lua`) — `oxlint` for JS/TS/JSX/TSX.
+- **Format:** conform.nvim (`lua/lsp/conform.lua`) — `oxfmt` for JS/TS/JSX/TSX/JSON/JSONC/HTML/CSS/YAML/**Markdown**. **Lint:** nvim-lint (`lua/lsp/nvim-lint.lua`) — `oxlint` for JS/TS/JSX/TSX.
   No null-ls. Formatting policy: conform first, `lsp_format = "fallback"`.
 - **Capabilities:** shared module `lua/lsp/capabilities.lua` (blink.cmp > nvim-cmp > stock),
   applied via `vim.lsp.config("*", …)` wildcard.
@@ -37,24 +37,17 @@
   `~/markdownlint-cli2.base.jsonc` (stowed from `dotfiles/`), wired explicitly
   because nvim-lint pipes stdin with nvim's cwd (tree discovery unreliable).
   Per-project configs layer on top. `<leader>mF` runs `--fix` (needs file path).
-- **Mason can't inject pip plugins into its venvs.** `mdformat-obsidian` + `mdformat-frontmatter`
-  are ensured in code: `MasonToolsUpdateCompleted` hook in `lua/lsp/mason.lua` pip-installs
-  missing entries of `mdformat_plugins` into `mason/packages/mdformat/venv`. Without
-  `mdformat-frontmatter`, mdformat mangles YAML frontmatter into a horizontal rule +
-  escaped paragraph (skill files get destroyed). Mason's mdformat is otherwise bare
-  CommonMark (no GFM).
-- **mdformat rewrites ordered lists** (`2.`/`3.` → `1.`/`1.`) unless `--number` is
-  passed — data loss on skill files. `conform.formatters.mdformat` in `lua/lsp/conform.lua`
-  sets `args = { "--number", "-" }`; keep that flag if you touch it.
+- **mdformat removed (2026-09-15) → oxfmt owns markdown.** mdformat escaped Obsidian wikilinks (`[[Note]]` → `\[[Note]\]`, silent + idempotent data loss), rewrote thematic breaks `---` to 70 underscores, hard breaks to `\`, and upper-cased callout types. oxfmt (already installed for frontend) preserves wikilinks/embeds/callouts/frontmatter byte-for-byte. The old `mdformat-obsidian`/`mdformat-frontmatter` pip-plugin hook in `lua/lsp/mason.lua` is gone.
+- **CHANGELOG.md is excluded from markdown formatting** via `conform.formatters.oxfmt.condition` (gates autosave AND `=G`, unlike `format_on_save`'s return). semantic-release writes `*` bullets; oxfmt (like mdformat) normalizes to `-`. Repos may also scope it via `.oxfmtrc.json` `ignorePatterns` (precedent: `dsh-better-edit`).
 - **mdx_analyzer needs more than config**: `.mdx` filetype doesn't exist upstream —
   mapped in `init.lua` via `vim.filetype.add` (also `gotmpl`); server needs a
   `package.json` root AND a TS **5.x** SDK in the project (TS 7 dropped
   `tsserverlibrary.js` → initialize fails).
 - **Exclusions are deliberate**: no `isort/yapf/pyflakes/python-lsp-server/mypy`
   (superseded by ruff+basedpyright); no `biome`/`prettier` (superseded by
-  `oxfmt`/`oxlint` for JS/TS/JSON/HTML/CSS/YAML); `oxlint/oxfmt/jq/kdlfmt/shfmt` in
+  `oxfmt`/`oxlint` for JS/TS/JSON/HTML/CSS/YAML/Markdown); `oxlint/oxfmt/jq/kdlfmt/shfmt` in
   ensure even though `oxfmt`/`jq`/`kdlfmt`/`shfmt` are formatters (conform needs them installed).
-- Deleted: `markdown_oxide` (→ marksman), `slint` (server + parser + package), `biome`/`prettier` (→ `oxfmt`/`oxlint`).
+- Deleted: `markdown_oxide` (→ marksman), `slint` (server + parser + package), `biome`/`prettier` (→ `oxfmt`/`oxlint`), `mdformat` (→ `oxfmt` for markdown, 2026-09-15).
 - `lazy-lock.json` pins versions — changing a spec's repo/version does NOTHING
   until `:Lazy! update <name>` (lockfile wins). Back it up before major bumps.
 
@@ -84,8 +77,8 @@ nvim --headless +"checkhealth vim.lsp" +"w! /tmp/health.txt" +"qa!"
 │   ├── keybindings.lua      — which-key, diagnostics/nav, git/file ops
 │   ├── config/              — lazy.lua (bootstrap + spec import), mini.lua, harpoon2.lua, marks.lua, text.lua
 │   ├── lsp/                 — orchestration (NOT server configs)
-│   │   ├── mason.lua        — mason + mason-lspconfig + mason-tool-installer ensure list, vim.lsp.enable allowlist, LspAttach tweaks, mdformat venv hook
-│   │   ├── conform.lua      — conform.nvim formatters_by_ft + format_on_save + stylua/rustfmt/taplo opts (oxfmt for frontend)
+│   │   ├── mason.lua        — mason + mason-lspconfig + mason-tool-installer ensure list, vim.lsp.enable allowlist, LspAttach tweaks
+│   │   ├── conform.lua      — conform.nvim formatters_by_ft + format_on_save + stylua/rustfmt/taplo opts (oxfmt for frontend + markdown; CHANGELOG condition)
 │   │   ├── nvim-lint.lua    — nvim-lint linters_by_ft + autocmd + markdownlint --config wiring (oxlint for frontend)
 │   │   ├── capabilities.lua — shared blink.cmp → cmp_nvim_lsp → stock, via vim.lsp.config("*",…)
 │   │   ├── nvim-treesitter.lua — parser install + highlight/indent enable
@@ -107,6 +100,7 @@ nvim --headless +"checkhealth vim.lsp" +"w! /tmp/health.txt" +"qa!"
 - `lua/lsp/` is **orchestration**; `lsp/` is **per-server config** — keep exception overrides (basedpyright diagnosticMode, gopls/bashls/marksman filetypes) in the documented block in `mason.lua` (rtp merge plugin-last, see Precedence rules).
 - `ftplugin/` never starts LSP; formatting/linting lives in `lua/lsp/conform.lua` + `lua/lsp/nvim-lint.lua`.
 - Adding a new language: `lsp/<server>.lua` + ensure entry + filetype + treesitter parser + enable in `mason.lua` allowlist.
+
 ## pi-lens alignment
 
 - Global `~/.pi-lens/lsp.json` routes pi-lens through Mason binaries

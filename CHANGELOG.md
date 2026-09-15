@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- **nvim:** migrate markdown formatter from mdformat to oxfmt
 - **nvim:** preserve frontmatter and list numbering in mdformat
 - **pi-lens:** migrate deprecated LSP config to canonical locations
 - **permissions:** suppress knip false positives for permission entry points

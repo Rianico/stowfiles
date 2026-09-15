@@ -30,8 +30,9 @@ local lsp_servers = {
   -- markdown
   "marksman",
   "markdownlint-cli2",
-  "mdformat",
   -- conform.nvim formatters / nvim-lint linters (frontend: oxlint + oxfmt)
+  -- oxfmt handles markdown too (replaces mdformat); mdformat removed 2026-09-15
+  -- (it escaped Obsidian wikilinks and rewrote thematic breaks to underscores).
   "oxlint",
   "oxfmt",
   "jq",
@@ -48,65 +49,11 @@ require("mason-lspconfig").setup({
 })
 require("mason-tool-installer").setup({ ensure_installed = lsp_servers })
 
--- mdformat auto-enables pip plugins in its own venv, which Mason can't
--- declare -- so top them up after every mason-tool-installer run (this also
--- covers a fresh mdformat install). Async, silent when already satisfied.
-local mdformat_plugins = { "mdformat-obsidian", "mdformat-frontmatter" }
-local mdformat_ensuring = false
-
-local function notify_async(msg, level)
-  vim.schedule(function() vim.notify(msg, level) end)
-end
-
-local function venv_python(pkg)
-  local root = vim.fn.stdpath("data") .. "/mason/packages/" .. pkg
-  for _, rel in ipairs({ "/venv/bin/python", "/venv/Scripts/python.exe" }) do
-    local py = root .. rel
-    if vim.fn.executable(py) == 1 then
-      return py
-    end
-  end
-end
-
-local function ensure_venv_plugins(pkg, plugins)
-  if mdformat_ensuring then
-    return
-  end
-  local py = venv_python(pkg)
-  if not py then
-    return -- host package missing; retried on the next run
-  end
-  mdformat_ensuring = true
-  local function step(i)
-    local plugin = plugins[i]
-    if not plugin then
-      mdformat_ensuring = false
-      return
-    end
-    vim.system({ py, "-m", "pip", "show", plugin }, { text = true }, function(check)
-      if check.code == 0 then
-        step(i + 1) -- already in the venv
-      else
-        notify_async("Installing " .. plugin .. " into Mason " .. pkg .. "...", vim.log.levels.INFO)
-        vim.system({ py, "-m", "pip", "install", "--disable-pip-version-check", plugin }, { text = true }, function(res)
-          if res.code == 0 then
-            notify_async(plugin .. " installed into Mason " .. pkg, vim.log.levels.INFO)
-          else
-            notify_async(plugin .. " install failed: " .. (res.stderr or ""), vim.log.levels.ERROR)
-          end
-          step(i + 1)
-        end)
-      end
-    end)
-  end
-  step(1)
-end
-
-vim.api.nvim_create_autocmd("User", {
-  pattern = "MasonToolsUpdateCompleted",
-  callback = function() ensure_venv_plugins("mdformat", mdformat_plugins) end,
-})
-
+-- oxfmt (mason) is now the markdown formatter; mdformat + its pip plugins
+-- (mdformat-obsidian, mdformat-frontmatter) were removed 2026-09-15. oxfmt
+-- preserves Obsidian wikilinks/embeds/callouts and YAML frontmatter natively,
+-- which mdformat mangled (wikilink escaping, 70-underscore thematic breaks,
+-- `\` hard breaks, upper-cased callout types).
 -- Server configs live in `lsp/*.lua` (one file per server, native convention).
 -- Shared capabilities (blink.cmp) apply to all of them via the `*` wildcard.
 vim.lsp.config("*", { capabilities = require("lsp.capabilities") })
