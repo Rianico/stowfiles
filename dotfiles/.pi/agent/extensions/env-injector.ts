@@ -1,14 +1,29 @@
 /**
  * Env Injector — Pi extension (cache-safe split)
  *
- * Static bits in `systemPrompt` once (cache-stable), dynamic UTC time
- * prepended to each user message (user messages are never prefix-cached).
+ * Static environment facts ride pi's structured prompt sections once per session
+ * (cache-stable, per-section diffed); the live UTC time rides each user message,
+ * because user messages are never prefix-cached.
  *
- * - `before_agent_start`: append `<env><os_type>…</os_type><shell>…</shell></env>`
- * - `input`: transform text to `[YYYY-MM-DDTHH:MM:SSZ]\n<text>` (bare `Z` = UTC)
+ * Surfaces:
+ * - Model-facing: `systemPromptOptions.sections.os_type` / `.shell` — pi renders each as
+ *   `<name>…</name>` right after the native `<cwd>` section. Mutating options (never
+ *   returning `systemPrompt`) keeps the structured-section diff intact.
+ * - Model-facing: the UTC stamp prefixed to each user message, restamped on resend.
  *
- * Why split: mutating `systemPrompt` per turn invalidates prompt cache.
- * Detection is best-effort, cached per process, never throws.
+ * Visibility: there is deliberately NO transcript entry here. The sections are rendered by
+ * pi into the system prompt, which the export's System-Prompt block shows verbatim — a
+ * snapshot message would only duplicate that text behind a default-collapsed toggle.
+ *
+ * Invariants:
+ * - `/`-prefixed input is never stamped: pi expands `/skill:<name>` and prompt templates
+ *   *after* input handlers run (`core/agent-session.js`), and both expanders require the
+ *   text to still start with `/`. Rewriting first would send the command as literal text.
+ *   Those turns simply carry no stamp.
+ * - Section names `os_type`/`shell` are safe against pi's reserved set (`preamble` throws;
+ *   `skills`/`cwd`/`tools`/`rules`/`docs`/`project_context`/`addendum` would shadow natives).
+ * - Section values are XML-escaped: they are interpolated straight into `<name>…</name>`.
+ * - Detection is best-effort and cached per process; it never throws.
  */
 
 import * as os from "node:os";
@@ -18,6 +33,10 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 let cachedOsType: string | undefined;
 let cachedShell: string | undefined;
+
+function escapeXml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 function friendlyOs(): string {
   const platform = os.platform();
@@ -78,41 +97,44 @@ export async function detectShell(): Promise<string> {
   } catch {
     cachedShell = name;
   }
-  return cachedShell;
+  // Assignments inside try/catch do not narrow, so re-state the fallback here.
+  return cachedShell ?? name;
 }
 
-/** Idempotency: skip when text already carries a `[<ISO-UTC>]` prefix. */
-export function needsTimestamp(text: string): boolean {
-  if (!text.trim()) return false;
-  return !/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\]/.test(text.trimStart());
-}
+/** Leading stamp written by this extension: `[<ISO-UTC>]` plus the newline it introduced. */
+const LEADING_STAMP = /^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\]\n?/;
 
-export function prependTimestamp(text: string, now = new Date()): string {
-  return `[${now.toISOString()}]${"\n"}${text}`;
-}
-
-export function buildStaticBlock(osType: string, shell: string): string {
-  // Z means UTC — documented here so per-message bytes stay bare.
-  return `<env><os_type>${osType}</os_type><shell>${shell}</shell></env>`;
+/**
+ * Stamp user text with the current UTC time. A resend carries the previous stamp, so it is
+ * replaced rather than kept — and only the stamp plus its own newline is consumed, so the
+ * body's leading whitespace survives the round trip. Whitespace-only input is returned
+ * untouched (no empty stamped turn), and a repeat within the same millisecond yields the
+ * identical string, which the caller treats as a no-op.
+ */
+export function stampText(text: string, now: Date = new Date()): string {
+  const body = text.replace(LEADING_STAMP, "");
+  if (!body.trim()) return text;
+  return `[${now.toISOString()}]\n${body}`;
 }
 
 export default function envInjector(pi: ExtensionAPI) {
   pi.on("before_agent_start", async (event) => {
     const osType = detectOsType();
     const shell = await detectShell();
-    if (event.systemPrompt.includes("<os_type>")) return;
-    return {
-      systemPrompt: `${event.systemPrompt}\n\n## Environment\n\n${buildStaticBlock(osType, shell)}\n`,
-    };
+
+    // Flat sections — no `<env>` wrapper: pi tags each section by its own name, and the
+    // insertion order after the native `<cwd>` section is what puts them at the tail.
+    const sections = event.systemPromptOptions.sections;
+    sections["os_type"] = escapeXml(osType);
+    sections["shell"] = escapeXml(shell);
   });
 
-  pi.on("input", async (event) => {
+  pi.on("input", (event) => {
     if (event.source === "extension") return { action: "continue" as const };
-    if (!needsTimestamp(event.text)) return { action: "continue" as const };
-    return {
-      action: "transform" as const,
-      text: prependTimestamp(event.text),
-      ...(event.images !== undefined ? { images: event.images } : {}),
-    };
+    // pi expands `/skill:` and `/template` after this hook — stamping first would break them.
+    if (event.text.startsWith("/")) return { action: "continue" as const };
+    const stamped = stampText(event.text);
+    if (stamped === event.text) return { action: "continue" as const };
+    return { action: "transform" as const, text: stamped };
   });
 }
