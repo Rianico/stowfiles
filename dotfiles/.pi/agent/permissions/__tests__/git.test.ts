@@ -59,6 +59,44 @@ describe("git push gate", () => {
 		);
 		expect(guidanceOf(decision)).toContain("Force push detected");
 	});
+	it("allows new-branch publishes with -u", async () => {
+		expect(await pushDecision("git push -u origin feat/new-branch")).toBeUndefined();
+	});
+
+	it("allows new-branch publishes with --set-upstream", async () => {
+		expect(
+			await pushDecision("git push --set-upstream origin feat/new-branch"),
+		).toBeUndefined();
+	});
+
+	it("blocks branch deletion with --delete", async () => {
+		expect(await pushDecision("git push origin --delete old-branch")).toMatchObject({
+			decision: "block",
+		});
+	});
+
+	it("blocks branch deletion with -d", async () => {
+		expect(await pushDecision("git push -d origin old-branch")).toMatchObject({
+			decision: "block",
+		});
+	});
+
+	it("blocks branch deletion with a colon refspec", async () => {
+		expect(await pushDecision("git push origin :old-branch")).toMatchObject({
+			decision: "block",
+		});
+	});
+
+	it("still prompts on force push combined with -u", async () => {
+		const decision = await pushDecision("git push -u -f origin feat/new-branch");
+		expect(guidanceOf(decision)).toContain("Force push detected");
+	});
+
+	it("does NOT block a delete dry-run (no push happens)", async () => {
+		expect(
+			await pushDecision("git push --delete --dry-run origin old-branch"),
+		).toBeUndefined();
+	});
 
 	it("flags --force-if-includes as a force push", async () => {
 		const decision = await pushDecision(
