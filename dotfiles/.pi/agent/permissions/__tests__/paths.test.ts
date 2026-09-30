@@ -133,6 +133,66 @@ describe("outside workspace gate", () => {
 		);
 		expect(promptOf(decision)).toBeDefined();
 	});
+	it("passes reads of system temp outside the cwd", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: "/tmp/scratch/output.txt",
+				absolutePath: "/tmp/scratch/output.txt",
+				projectPath: undefined,
+			}),
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("passes reads via the macOS-resolved temp root", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: "/private/tmp/scratch/output.txt",
+				absolutePath: "/private/tmp/scratch/output.txt",
+				projectPath: undefined,
+			}),
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("passes reads of the agent git cache outside the cwd", async () => {
+		const gitPath = join(homedir(), ".pi/agent/git/sessions/state.json");
+		const decision = await decide(
+			pathTool("read", {
+				path: gitPath,
+				absolutePath: gitPath,
+				projectPath: undefined,
+			}),
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("passes read_skill for the agent git cache", async () => {
+		const gitPath = join(homedir(), ".pi/agent/git/sessions/state.json");
+		const decision = await decide(pathTool("read_skill", { path: gitPath }));
+		expect(decision).toBeUndefined();
+	});
+
+	it("still asks for writes to system temp", async () => {
+		const decision = await decide(
+			pathTool("write", {
+				path: "/tmp/scratch/output.txt",
+				absolutePath: "/tmp/scratch/output.txt",
+				projectPath: undefined,
+			}),
+		);
+		expect(promptOf(decision)).toBeDefined();
+	});
+	it("still asks for reads of tmp-named dirs outside the system temp", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: "/Users/zhengxk/other/tmp/notes.txt",
+				absolutePath: "/Users/zhengxk/other/tmp/notes.txt",
+				projectPath: undefined,
+			}),
+		);
+		expect(promptOf(decision)).toBeDefined();
+	});
 
 	it("passes finds inside the cwd", async () => {
 		const decision = await decide(

@@ -130,6 +130,49 @@ function isGlobalConfigPath(path: string): boolean {
 function isGlobalConfigAbsolutePath(absolute: string, real: string | undefined): boolean {
 	return isGlobalConfigPath(absolute) || (real !== undefined && isGlobalConfigPath(real));
 }
+// ---------------------------------------------------------------------------
+// Allowlist: ephemeral + agent-internal read-only paths
+// ---------------------------------------------------------------------------
+//
+// Outside-workspace reads of these are expected and should not prompt:
+// - System temp (/tmp; macOS resolves to /private/tmp — both forms match):
+//   agent scratch output, test fixtures, file-passing between commands.
+// - Pi agent git cache (.pi/agent/git — global ~/.pi/agent/git or any
+//   <root>/.pi/agent/git): pi-internal VCS state the agent routinely inspects.
+// Gathered into the read-only bypass below, so every read-only request
+// (read/grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
+// bypasses by default; edit/write remain gated.
+const TMP_ROOTS = ["/tmp", "/private/tmp"] as const;
+
+function isTmpPath(path: string): boolean {
+	const normalized = path.replace(/\\/g, "/");
+	return TMP_ROOTS.some(
+		(root) => normalized === root || normalized.startsWith(`${root}/`),
+	);
+}
+
+function isTmpAbsolutePath(absolute: string, real: string | undefined): boolean {
+	return isTmpPath(absolute) || (real !== undefined && isTmpPath(real));
+}
+
+// Pi agent git cache — substring match is intentional so absolute
+// (/Users/x/.pi/agent/git/...) and expanded-home (~/.pi/agent/git/...) forms
+// match without requiring the path to exist (mirrors SKILL_PATH_MARKERS).
+const AGENT_GIT_MARKERS = [".pi/agent/git"] as const;
+
+function isAgentGitPath(path: string): boolean {
+	const normalized = path.replace(/\\/g, "/");
+	return AGENT_GIT_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function isAgentGitAbsolutePath(
+	absolute: string,
+	real: string | undefined,
+): boolean {
+	return (
+		isAgentGitPath(absolute) || (real !== undefined && isAgentGitPath(real))
+	);
+}
 
 // Pi docs/examples installed via Homebrew — read-only reference content that agents
 // routinely inspect (docs, examples, extensions, skills, etc.). Access via `read` or
@@ -224,7 +267,13 @@ function isSkillAbsolutePath(
 
 /** Gathered read-only allowlist: Pi reference + skills/prompts. */
 function isReadOnlyBypassPath(path: string): boolean {
-	return isPiReferencePath(path) || isCodingAgentSkillPath(path) || isGlobalConfigPath(path);
+	return (
+		isPiReferencePath(path) ||
+		isCodingAgentSkillPath(path) ||
+		isGlobalConfigPath(path) ||
+		isTmpPath(path) ||
+		isAgentGitPath(path)
+	);
 }
 
 function isReadOnlyBypassAbsolutePath(
@@ -234,7 +283,9 @@ function isReadOnlyBypassAbsolutePath(
 	return (
 		isPiReferenceAbsolutePath(absolute, real) ||
 		isSkillAbsolutePath(absolute, real) ||
-		isGlobalConfigAbsolutePath(absolute, real)
+		isGlobalConfigAbsolutePath(absolute, real) ||
+		isTmpAbsolutePath(absolute, real) ||
+		isAgentGitAbsolutePath(absolute, real)
 	);
 }
 
@@ -346,7 +397,7 @@ function pathVerdict(
 
 	if (inside) return undefined;
 
-	// Gathered read-only allowlist (Pi docs/examples + skills/prompts):
+	// Gathered read-only allowlist (reference + skills + global configs + temp + agent git):
 	// bypass only for read-only operations; edit/write remain gated.
 	if (allowReadOnlyBypass && isReadOnlyBypassAbsolutePath(absolute, real))
 		return undefined;
@@ -372,7 +423,7 @@ export default function permissions(api: PermissionsAPI) {
 				find: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
 				ls: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
 				bash: async (tool) => {
-					// Gathered read-only bypass: Pi docs/examples + skills/prompts
+					// Gathered read-only bypass: reference + skills + global configs + temp + agent git
 					// Only cat/bat/rg/grep/fd/find/ls/eza touching an allowlisted path bypass.
 					if (await bashTouchesReadOnlyBypass(tool.command)) return undefined;
 					return undefined;
