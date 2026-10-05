@@ -80,9 +80,9 @@ function isOutside(base: string, path: string): boolean {
 //   global ~/.pi/agent/skills, ~/.pi/agent/prompts, ~/.claude/skills,
 //   ~/.codex/skills, ~/stowfiles/dotfiles/.pi/agent/prompts, …
 //   and project-local .pi/skills, .claude/skills, .agent/skills, etc.
-// Gathered here so every read-only request
-// (read/grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
-// bypasses by default; edit/write remain gated.
+// Gathered here so read-only search/loader requests
+// (grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
+// bypass by default; edit/write remain gated (`read` is never gated).
 //
 // Skill markers are dot-prefixed roots — substring match is intentional so
 // both absolute (/Users/x/.pi/agent/skills/foo/SKILL.md) and expanded
@@ -139,9 +139,9 @@ function isGlobalConfigAbsolutePath(absolute: string, real: string | undefined):
 //   agent scratch output, test fixtures, file-passing between commands.
 // - Pi agent git cache (.pi/agent/git — global ~/.pi/agent/git or any
 //   <root>/.pi/agent/git): pi-internal VCS state the agent routinely inspects.
-// Gathered into the read-only bypass below, so every read-only request
-// (read/grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
-// bypasses by default; edit/write remain gated.
+// Gathered into the read-only bypass below, so read-only search requests
+// (grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
+// bypass by default; edit/write remain gated (`read` is never gated).
 const TMP_ROOTS = ["/tmp", "/private/tmp"] as const;
 
 function isTmpPath(path: string): boolean {
@@ -416,7 +416,9 @@ export default function permissions(api: PermissionsAPI) {
 		handler(input) {
 			const realCwd = realTarget(resolve(input.cwd)) ?? input.cwd;
 			return matchTool(input.tool, {
-				read: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
+				// Reads are never gated — `read` may touch any path. The gate
+				// only asks for writes and the search/loader tools below.
+				read: () => undefined,
 				edit: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
 				write: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
 				grep: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),

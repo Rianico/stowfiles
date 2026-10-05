@@ -28,9 +28,9 @@ describe("outside workspace gate", () => {
 		expect(outside).toBeDefined();
 	});
 
-	it("passes reads inside the cwd", async () => {
+	it("passes grep inside the cwd", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "src/main.ts",
 				absolutePath: `${CWD}/src/main.ts`,
 				projectPath: "src/main.ts",
@@ -41,7 +41,7 @@ describe("outside workspace gate", () => {
 
 	it("passes absolute paths inside the cwd", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: `${CWD}/src/main.ts`,
 				absolutePath: `${CWD}/src/main.ts`,
 				projectPath: "src/main.ts",
@@ -52,7 +52,7 @@ describe("outside workspace gate", () => {
 
 	it("asks for absolute paths outside the cwd", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "/Users/zhengxk/other/secret.txt",
 				absolutePath: "/Users/zhengxk/other/secret.txt",
 				projectPath: undefined,
@@ -74,11 +74,11 @@ describe("outside workspace gate", () => {
 		expect(promptOf(decision)).toBeDefined();
 	});
 
-	it("asks for home-relative reads that the SDK misclassifies as inside", async () => {
+	it("asks for home-relative paths the SDK misclassifies as inside", async () => {
 		// The SDK resolves `~/x` against cwd, so projectPath gets set; the module
 		// must expand `~` itself and notice the escape.
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "~/notes.txt",
 				absolutePath: `${CWD}/~/notes.txt`,
 				projectPath: "~/notes.txt",
@@ -89,9 +89,9 @@ describe("outside workspace gate", () => {
 		expect(prompt?.guidance).toContain(homedir());
 	});
 
-	it("asks for ~user/... reads even when the SDK misclassifies them as inside", async () => {
+	it("asks for ~user/... paths even when the SDK misclassifies them as inside", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "~other/notes.txt",
 				absolutePath: `${CWD}/~other/notes.txt`,
 				projectPath: "~other/notes.txt",
@@ -100,9 +100,9 @@ describe("outside workspace gate", () => {
 		expect(promptOf(decision)).toBeDefined();
 	});
 
-	it("passes home-relative reads when the cwd is the home directory", async () => {
+	it("passes home-relative paths when the cwd is the home directory", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "~/notes.txt",
 				absolutePath: `${homedir()}/notes.txt`,
 				projectPath: "notes.txt",
@@ -133,9 +133,9 @@ describe("outside workspace gate", () => {
 		);
 		expect(promptOf(decision)).toBeDefined();
 	});
-	it("passes reads of system temp outside the cwd", async () => {
+	it("passes grep of system temp outside the cwd", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "/tmp/scratch/output.txt",
 				absolutePath: "/tmp/scratch/output.txt",
 				projectPath: undefined,
@@ -144,9 +144,9 @@ describe("outside workspace gate", () => {
 		expect(decision).toBeUndefined();
 	});
 
-	it("passes reads via the macOS-resolved temp root", async () => {
+	it("passes grep via the macOS-resolved temp root", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "/private/tmp/scratch/output.txt",
 				absolutePath: "/private/tmp/scratch/output.txt",
 				projectPath: undefined,
@@ -155,10 +155,10 @@ describe("outside workspace gate", () => {
 		expect(decision).toBeUndefined();
 	});
 
-	it("passes reads of the agent git cache outside the cwd", async () => {
+	it("passes grep of the agent git cache outside the cwd", async () => {
 		const gitPath = join(homedir(), ".pi/agent/git/sessions/state.json");
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: gitPath,
 				absolutePath: gitPath,
 				projectPath: undefined,
@@ -183,9 +183,9 @@ describe("outside workspace gate", () => {
 		);
 		expect(promptOf(decision)).toBeDefined();
 	});
-	it("still asks for reads of tmp-named dirs outside the system temp", async () => {
+	it("still asks for grep of tmp-named dirs outside the system temp", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: "/Users/zhengxk/other/tmp/notes.txt",
 				absolutePath: "/Users/zhengxk/other/tmp/notes.txt",
 				projectPath: undefined,
@@ -200,6 +200,28 @@ describe("outside workspace gate", () => {
 				path: "src",
 				absolutePath: `${CWD}/src`,
 				projectPath: "src",
+			}),
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("never asks for reads outside the cwd", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: "/Users/zhengxk/other/secret.txt",
+				absolutePath: "/Users/zhengxk/other/secret.txt",
+				projectPath: undefined,
+			}),
+		);
+		expect(decision).toBeUndefined();
+	});
+
+	it("never asks for home-relative reads", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: "~other/notes.txt",
+				absolutePath: `${CWD}/~other/notes.txt`,
+				projectPath: "~other/notes.txt",
 			}),
 		);
 		expect(decision).toBeUndefined();
@@ -230,7 +252,7 @@ describe("outside workspace gate — symlink resolution", () => {
 
 	it("passes a symlink whose real target is inside the workspace", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: join(root, "via-link", "src", "main.ts"),
 				absolutePath: join(root, "via-link", "src", "main.ts"),
 				projectPath: undefined, // lexical path escapes the workspace
@@ -254,7 +276,7 @@ describe("outside workspace gate — symlink resolution", () => {
 
 	it("asks when a workspace-internal symlink escapes the workspace", async () => {
 		const decision = await decide(
-			pathTool("read", {
+			pathTool("grep", {
 				path: join(ws, "escape", "secret.txt"),
 				absolutePath: join(ws, "escape", "secret.txt"),
 				projectPath: "escape/secret.txt", // lexical path looks inside
@@ -278,5 +300,17 @@ describe("outside workspace gate — symlink resolution", () => {
 			ws,
 		);
 		expect(promptOf(decision)).toBeDefined();
+	});
+
+	it("never asks for reads through a workspace-internal symlink that escapes", async () => {
+		const decision = await decide(
+			pathTool("read", {
+				path: join(ws, "escape", "secret.txt"),
+				absolutePath: join(ws, "escape", "secret.txt"),
+				projectPath: "escape/secret.txt",
+			}),
+			ws,
+		);
+		expect(decision).toBeUndefined();
 	});
 });
