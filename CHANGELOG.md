@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- **pi:** inject pip/uv/npm package mirror facts into env block via tool conventions
 - **permissions:** ungate read tool from outside-workspace hook
 - **pi:** add env injector with cache-safe static-dynamic split (#5)
 - **permissions:** refine push gate and read-only bypass (#4)
