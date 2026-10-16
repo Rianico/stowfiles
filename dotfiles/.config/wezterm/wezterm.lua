@@ -132,6 +132,13 @@ config.keys = {
 -- end
 
 config.quick_select_patterns = {
+  -- Antigravity CLI resume command: `agy --conversation=<uuid>`, the line agy
+  -- prints on exit ("Resume with -c (or command below):").
+  -- Listed first on purpose: wezterm concatenates every pattern into one
+  -- alternation and matches leftmost-first, so a later pattern that also
+  -- matches at the same spot (the generic "session names" one below) would win
+  -- with a bare `agy` and the whole command would never be selectable.
+  "\\bagy\\b[^\\n]*?--conversation=[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}",
   -- UUIDs (session IDs, container IDs, etc.)
   "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
   -- Short UUIDs / Docker container IDs (12 hex chars)
@@ -148,6 +155,12 @@ config.quick_select_patterns = {
   "\\b(?:npm|pnpm|yarn|git|gh|github|brew|cargo|pip|gem|deno|npx):[a-zA-Z0-9@][a-zA-Z0-9@/._-]*",
   -- File paths
   "[/~]?[a-zA-Z0-9_/.-]+/[a-zA-Z0-9_.-]+",
+  -- Command-line flags/options, so the leading dashes stay attached:
+  -- `--config-file` instead of just `config-file`. Placed after "File paths"
+  -- and before "Session names" because that path pattern is the only other
+  -- one able to match at a leading `-`; for tokens like `-I/usr/include` it
+  -- starts at the same offset and, listed earlier, keeps winning.
+  "-{1,2}[a-zA-Z][a-zA-Z0-9_-]*",
   -- Session names, container names (alphanumeric, dash, underscore)
   "[a-zA-Z][a-zA-Z0-9_-]{2,}",
   -- Process IDs
