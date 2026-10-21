@@ -5,7 +5,8 @@
  * prepended to each user message (user messages are never prefix-cached).
  *
  * - `before_agent_start`: append `<env>` with os/shell + package-mirror facts
- * - `input`: transform text to `[YYYY-MM-DDTHH:MM:SSZ]\n<text>` (bare `Z` = UTC)
+ * - `input`: stamp fresh text as `[YYYY-MM-DDTHH:MM:SS.sssZ]\n<text>` (bare `Z` = UTC);
+ *   text that already carries its Message Time Prefix is returned byte-identical
  *
  * Why split: mutating `systemPrompt` per turn invalidates prompt cache.
  * Detection is best-effort, cached per process, never throws.
@@ -231,14 +232,37 @@ export function parseUvIndexToml(text: string): string | undefined {
   return defaulted ?? first ?? legacy;
 }
 
-/** Idempotency: skip when text already carries a `[<ISO-UTC>]` prefix. */
+/**
+ * Message Time Prefix — one spec, both directions.
+ *
+ * A fresh user message is stamped with the instant it was written (`Z` = UTC, bare
+ * so the per-message bytes stay small). A message that *already* carries the prefix
+ * is returned byte-identical: the prefix means **origin time**, not delivery time, so
+ * rewriting it would falsify when the message was written.
+ *
+ * `ISO_UTC_INSTANT` recognises, `formatMessageTimePrefix` writes. The fraction of a
+ * second is optional on the way in (older prefixes may omit it) while `toISOString()`
+ * always emits it; the suite pins the pair so the two halves cannot drift.
+ */
+const ISO_UTC_INSTANT = /^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\]/;
+
+export function formatMessageTimePrefix(now: Date): string {
+  return `[${now.toISOString()}]`;
+}
+
+/** True when text already carries its origin time; leading whitespace is tolerated. */
+export function hasMessageTimePrefix(text: string): boolean {
+  return ISO_UTC_INSTANT.test(text.trimStart());
+}
+
+/** Hook decision: stamp fresh text only — an existing prefix is never restamped. */
 export function needsTimestamp(text: string): boolean {
   if (!text.trim()) return false;
-  return !/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\]/.test(text.trimStart());
+  return !hasMessageTimePrefix(text);
 }
 
 export function prependTimestamp(text: string, now = new Date()): string {
-  return `[${now.toISOString()}]${"\n"}${text}`;
+  return `${formatMessageTimePrefix(now)}\n${text}`;
 }
 
 export interface MirrorFacts {
@@ -272,7 +296,10 @@ export default function envInjector(pi: ExtensionAPI) {
   });
 
   pi.on("input", async (event) => {
+    // Extension-authored text carries no origin time of its own.
     if (event.source === "extension") return { action: "continue" as const };
+    // Already stamped, or blank: return the message untouched. Its prefix records when it
+    // was written, so restamping with the delivery time would be a rewrite, not a fix.
     if (!needsTimestamp(event.text)) return { action: "continue" as const };
     return {
       action: "transform" as const,
