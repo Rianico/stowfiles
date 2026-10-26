@@ -1,12 +1,12 @@
 {
+  "toolActivation": "auto",
   "toolDescriptionMode": "compact",
   "inlineToolDisplay": "summary",
+  "disabledFeatures": ["watchdog", "panes", "preflight", "lane-metadata", "gates"],
+  "worktreeProvider": "auto",
+  "worktreeBranchPrefix": "pi-subagents/",
   "fleetKeybindings": {
-    "pageUp": [
-      "b"
-    ],
-    "pageDown": [
-      "f"
-    ]
+    "pageUp": ["b"],
+    "pageDown": ["f"]
   }
 }
