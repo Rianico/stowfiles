@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { ExtensionAPI, InputEvent, InputEventResult } from "@earendil-works/pi-coding-agent";
+import type {
+	BeforeAgentStartEvent,
+	BeforeAgentStartEventResult,
+	ExtensionAPI,
+	InputEvent,
+	InputEventResult,
+} from "@earendil-works/pi-coding-agent";
 import envInjector, {
+	buildStaticBlock,
+	detectOsType,
+	detectShell,
 	formatMessageTimePrefix,
 	hasMessageTimePrefix,
 	needsTimestamp,
@@ -22,6 +31,35 @@ function loadInputHook(): Handler {
 	const handler = handlers.get("input");
 	if (handler === undefined) throw new Error("input hook was not registered");
 	return handler;
+}
+
+type BeforeAgentStartHandler = (
+	event: BeforeAgentStartEvent,
+) =>
+	| Promise<BeforeAgentStartEventResult | undefined>
+	| BeforeAgentStartEventResult
+	| undefined;
+
+/** Register the extension against a stub API and hand back its `before_agent_start` hook. */
+function loadBeforeAgentStartHook(): BeforeAgentStartHandler {
+	const handlers = new Map<string, BeforeAgentStartHandler>();
+	envInjector({
+		on: (name: string, handler: BeforeAgentStartHandler) => {
+			handlers.set(name, handler);
+		},
+	} as unknown as ExtensionAPI);
+	const handler = handlers.get("before_agent_start");
+	if (handler === undefined) throw new Error("before_agent_start hook was not registered");
+	return handler;
+}
+
+/** A runtime-shaped prompt state with no sections yet. */
+function startEvent(): BeforeAgentStartEvent {
+	return {
+		type: "before_agent_start",
+		systemPrompt: "preamble",
+		systemPromptOptions: { cwd: process.cwd(), sections: {}, skills: [] },
+	};
 }
 
 describe("Message Time Prefix", () => {
@@ -114,5 +152,51 @@ describe("input hook", () => {
 		await expect(input({ type: "input", source: "interactive", text: "   " })).resolves.toEqual({
 			action: "continue",
 		});
+	});
+});
+
+describe("env section", () => {
+	const beforeAgentStart = loadBeforeAgentStartHook();
+
+	it("contributes an `env` section and returns no replacement prompt", async () => {
+		const event = startEvent();
+
+		expect(await beforeAgentStart(event)).toBeUndefined();
+		expect(event.systemPrompt).toBe("preamble");
+
+		const names = Object.keys(event.systemPromptOptions.sections);
+		expect(names).toEqual(["env"]);
+		for (const name of names) {
+			expect(name).toMatch(/^[a-z][a-z0-9_-]*$/);
+			expect(name).not.toBe("preamble");
+		}
+	});
+
+	it("carries the machine facts without repeating its own outer fence", async () => {
+		const event = startEvent();
+		await beforeAgentStart(event);
+		const body = event.systemPromptOptions.sections["env"] ?? "";
+
+		expect(body).toContain(`<os_type>${detectOsType()}</os_type>`);
+		expect(body).toContain(`<shell>${await detectShell()}</shell>`);
+		expect(body).not.toContain("<env>");
+		expect(body).not.toContain("</env>");
+		// The runtime adds the fence exactly once; the exported builder still emits it.
+		expect(buildStaticBlock("macOS (Darwin 24.1.0, arm64)", "zsh 5.9")).toBe(
+			"<env><os_type>macOS (Darwin 24.1.0, arm64)</os_type><shell>zsh 5.9</shell></env>",
+		);
+	});
+
+	it("is idempotent: a second run over the same event is byte-identical", async () => {
+		const event = startEvent();
+		await beforeAgentStart(event);
+		const first = JSON.stringify(event.systemPromptOptions.sections);
+
+		await beforeAgentStart(event);
+		expect(JSON.stringify(event.systemPromptOptions.sections)).toBe(first);
+
+		const fresh = startEvent();
+		await beforeAgentStart(fresh);
+		expect(JSON.stringify(fresh.systemPromptOptions.sections)).toBe(first);
 	});
 });

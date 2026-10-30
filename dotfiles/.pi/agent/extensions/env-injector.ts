@@ -1,14 +1,14 @@
 /**
  * Env Injector — Pi extension (cache-safe split)
  *
- * Static bits in `systemPrompt` once (cache-stable), dynamic UTC time
+ * Static bits in the owned `env` system-prompt section (cache-stable), dynamic UTC time
  * prepended to each user message (user messages are never prefix-cached).
  *
- * - `before_agent_start`: append `<env>` with os/shell + package-mirror facts
+ * - `before_agent_start`: write the `env` section with os/shell + package-mirror facts
  * - `input`: stamp fresh text as `[YYYY-MM-DDTHH:MM:SS.sssZ]\n<text>` (bare `Z` = UTC);
  *   text that already carries its Message Time Prefix is returned byte-identical
  *
- * Why split: mutating `systemPrompt` per turn invalidates prompt cache.
+ * Why split: the `env` section is cache-stable, so per-turn facts never enter it.
  * Detection is best-effort, cached per process, never throws.
  *
  * Package mirrors follow each tool's own convention: npm/pip are asked via
@@ -271,18 +271,30 @@ export interface MirrorFacts {
   npm?: string;
 }
 
-export function buildStaticBlock(osType: string, shell: string, mirrors: MirrorFacts = {}): string {
+/** The `<env>` facts themselves; the runtime adds the outer fence for the `env` section. */
+function buildStaticFacts(osType: string, shell: string, mirrors: MirrorFacts = {}): string {
   // Z means UTC — documented here so per-message bytes stay bare.
   const parts = [`<os_type>${osType}</os_type>`, `<shell>${shell}</shell>`];
   if (mirrors.pip) parts.push(`<pip_index_url>${mirrors.pip}</pip_index_url>`);
   if (mirrors.uv) parts.push(`<uv_index_url>${mirrors.uv}</uv_index_url>`);
   if (mirrors.npm) parts.push(`<npm_registry>${mirrors.npm}</npm_registry>`);
-  return `<env>${parts.join("")}</env>`;
+  return parts.join("");
 }
 
-export default function envInjector(pi: ExtensionAPI) {
-  pi.on("before_agent_start", async (event) => {
-    if (event.systemPrompt.includes("<os_type>")) return;
+/** The fenced block, for callers that need the facts as a standalone `<env>` element. */
+export function buildStaticBlock(osType: string, shell: string, mirrors: MirrorFacts = {}): string {
+  return `<env>${buildStaticFacts(osType, shell, mirrors)}</env>`;
+}
+
+const ENV_SECTION_NAME = "env";
+
+/**
+ * Body of the `env` section. The runtime fences a named section as `<name>…</name>` and
+ * drops an empty body, so this returns the facts alone and degrades to "" on failure
+ * instead of throwing out of the handler.
+ */
+async function buildEnvSectionBody(): Promise<string> {
+  try {
     const [osType, shell, pip, uv, npm] = await Promise.all([
       detectOsType(),
       detectShell(),
@@ -290,9 +302,18 @@ export default function envInjector(pi: ExtensionAPI) {
       detectUvIndex(),
       detectNpmRegistry(),
     ]);
-    return {
-      systemPrompt: `${event.systemPrompt}\n\n## Environment\n\n${buildStaticBlock(osType, shell, { pip, uv, npm })}\n`,
-    };
+    return buildStaticFacts(osType, shell, { pip, uv, npm });
+  } catch {
+    return "";
+  }
+}
+
+export default function envInjector(pi: ExtensionAPI) {
+  pi.on("before_agent_start", async (event) => {
+    // Re-assignment is the idempotence guard: the section carries the facts, never a
+    // replacement prompt, so no handler can erase another extension's block.
+    event.systemPromptOptions.sections[ENV_SECTION_NAME] = await buildEnvSectionBody();
+    return undefined;
   });
 
   pi.on("input", async (event) => {
