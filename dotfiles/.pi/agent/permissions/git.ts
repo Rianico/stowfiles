@@ -3,155 +3,138 @@ import {
   gitValueFlags,
   matchCommand,
   matchTool,
-  request,
-} from "@rianico/pi-permission-lsz";
-import type {
-  PermissionInput,
-  PermissionsAPI,
-  ShellToken,
-  SimpleCommand,
+  type PermissionsAPI,
+  type SimpleCommand,
 } from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
-// Gate: git push
+// Gates: operations that destroy remote branches or local work
 // ---------------------------------------------------------------------------
 //
-// Branch-deletion pushes are closed (blocked): `--delete`/`-d` or a
-// `:branch` refspec is destructive and never agent-approved.
-// New-branch publishes are open (allowed): `-u`/`--set-upstream` creates
-// a remote branch without rewriting existing history.
-// Force-push detection covers the exact spellings plus the `=`-value forms
-// (`--force-with-lease=<ref>:<expect>`) that the SDK's `hasFlag` cannot match.
-// `-n`/`--dry-run` performs no push, so the `where` clause excludes it.
+// Only irreversible destruction is blocked; ordinary work stays open:
+//
+// - `git push` that deletes (`--delete`, `-d`, a `:branch` refspec), prunes
+//   (`--prune`), mirrors (`--mirror`), or rewrites (`-f`, `--force`,
+//   `--force-with-lease`, `--force-if-includes`, a `+refspec`) remote history
+//   is blocked: the Approver deletes or rewrites the branch by hand.
+// - `git reset --hard` is blocked: it discards uncommitted changes and moves
+//   HEAD. `--soft`, `--mixed`, and `--keep` stay open.
+// - Every other push (plain, `-u`/`--set-upstream`, `--dry-run`) is open.
+//
+// Deletion is spelled three ways (`--delete`, `-d`, `:refspec`) and rewriting
+// four (`-f`, `--force`, `--force-with-lease[=…]`, `--force-if-includes`, and
+// a `+refspec`); `hasFlag` alone cannot see the `=` value forms or the
+// refspec, so those are checked on the argument text.
 
+const DELETE_FLAGS = ["--delete", "-d"] as const;
+const MIRROR_FLAGS = ["--mirror"] as const;
+const PRUNE_FLAGS = ["--prune"] as const;
 const FORCE_FLAGS = [
   "-f",
   "--force",
   "--force-with-lease",
   "--force-if-includes",
 ] as const;
-
 const FORCE_VALUE_FLAGS = [
   "--force-with-lease=",
   "--force-if-includes=",
 ] as const;
-const DELETE_FLAGS = ["--delete", "-d"] as const;
 
-const CREATE_FLAGS = ["-u", "--set-upstream"] as const;
+/** Refspecs after the remote: `push` is positional 0, the remote is 1. */
+function pushRefspecs(command: SimpleCommand): readonly string[] {
+  return command
+    .positionals({ valueFlags: gitValueFlags })
+    .slice(2)
+    .map((token) => token.text);
+}
 
-const CREATE_VALUE_FLAGS = ["--set-upstream="] as const;
+function isForcePush(
+  command: SimpleCommand,
+  refspecs: readonly string[],
+): boolean {
+  return (
+    command.hasFlag(...FORCE_FLAGS) ||
+    command.args.some((arg) =>
+      FORCE_VALUE_FLAGS.some((flag) => arg.text.startsWith(flag)),
+    ) ||
+    refspecs.some((refspec) => refspec.startsWith("+"))
+  );
+}
+
+function isDeletePush(
+  command: SimpleCommand,
+  refspecs: readonly string[],
+): boolean {
+  return (
+    command.hasFlag(...DELETE_FLAGS) ||
+    refspecs.some((refspec) => refspec.startsWith(":"))
+  );
+}
+
+const REASON_DELETE =
+  "Branch-deletion push blocked: deleting a remote branch cannot be undone. " +
+  "Delete the branch with the Approver if this is intended.";
+const REASON_MIRROR =
+  "Mirror push blocked: --mirror overwrites and deletes every remote ref. " +
+  "Push the branch you mean instead, or let the Approver run this.";
+const REASON_PRUNE =
+  "Pruning push blocked: --prune deletes remote branches that no longer exist locally. " +
+  "Delete the named branch explicitly, or let the Approver run this.";
+const REASON_FORCE =
+  "Force push blocked: it rewrites published history. " +
+  "Rebase locally and push a fast-forward, or let the Approver run this.";
+const REASON_RESET =
+  "Hard reset blocked: it discards uncommitted changes and moves HEAD. " +
+  "Commit or stash the work first, or let the Approver run this.";
 
 const gitPush = matchCommand({
   program: "git",
   subcommands: ["push"],
   valueFlags: gitValueFlags,
-  where: (command: SimpleCommand): boolean =>
-    !command.hasFlag("--dry-run", "-n"),
-  onMatch: ({ commands }: { commands: readonly SimpleCommand[] }) => {
-    const highlight = commands.map(
-      (command: SimpleCommand) => command.span,
-    );
-
-    // Close: branch deletion is destructive and never agent-approved.
-    const deletesBranch: boolean = commands.some(
-      (command: SimpleCommand): boolean =>
-        command.hasFlag(...DELETE_FLAGS) ||
-        command.args.some((arg: ShellToken): boolean =>
-          arg.text.startsWith(":"),
-        ),
-    );
-    if (deletesBranch) {
-      return block(
-        "Branch-deletion push detected — deleting a remote branch is destructive. Delete the branch manually if this is intended.",
-      );
+  // `-n` / `--dry-run` performs no push, so it decides nothing either way.
+  where: (command) => !command.hasFlag("--dry-run", "-n"),
+  onMatch: ({ commands }) => {
+    for (const command of commands) {
+      const refspecs = pushRefspecs(command);
+      if (command.hasFlag(...MIRROR_FLAGS)) return block(REASON_MIRROR);
+      if (
+        command.hasFlag(...PRUNE_FLAGS) ||
+        command.args.some((arg) => arg.text.startsWith("--prune="))
+      )
+        return block(REASON_PRUNE);
+      if (isDeletePush(command, refspecs)) return block(REASON_DELETE);
+      if (isForcePush(command, refspecs)) return block(REASON_FORCE);
     }
-
-    const forcePush: boolean = commands.some(
-      (command: SimpleCommand): boolean =>
-        command.hasFlag(...FORCE_FLAGS) ||
-        command.args.some((arg: ShellToken): boolean =>
-          FORCE_VALUE_FLAGS.some(
-            (flag: string): boolean => arg.text.startsWith(flag),
-          ),
-        ),
-    );
-    if (forcePush) {
-      return request({
-        guidance:
-          "Force push detected — review the remote, branch, and rewritten history before approving.",
-        highlight,
-        approveLabel: "Push",
-        rejectLabel: "Cancel push",
-      });
-    }
-
-    // Open: new-branch publish flow — creating a remote branch does not
-    // rewrite existing history.
-    const createsBranch: boolean = commands.some(
-      (command: SimpleCommand): boolean =>
-        command.hasFlag(...CREATE_FLAGS) ||
-        command.args.some((arg: ShellToken): boolean =>
-          CREATE_VALUE_FLAGS.some(
-            (flag: string): boolean => arg.text.startsWith(flag),
-          ),
-        ),
-    );
-    if (createsBranch) {
-      return undefined;
-    }
-
-    return request({
-      guidance: "Review the remote, branch, and any force flags before approving.",
-      highlight,
-      approveLabel: "Push",
-      rejectLabel: "Cancel push",
-    });
+    return undefined;
   },
 });
-
-// ---------------------------------------------------------------------------
-// Gate: git reset --hard
-// ---------------------------------------------------------------------------
-//
-// `--hard` discards uncommitted changes and moves HEAD, so it is gated.
-// Variants without `--hard` (`--soft`, `--mixed`, `--keep`, or no mode flag)
-// remain ungated — they do not discard tracked work in the same way.
 
 const gitResetHard = matchCommand({
   program: "git",
   subcommands: ["reset"],
   valueFlags: gitValueFlags,
-  where: (command: SimpleCommand): boolean => command.hasFlag("--hard"),
-  onMatch: ({ commands }: { commands: readonly SimpleCommand[] }) =>
-    request({
-      guidance:
-        "Hard reset discards uncommitted changes and moves HEAD — verify the target commit/branch and that no work will be lost before approving.",
-      highlight: commands.map(
-        (command: SimpleCommand) => command.span,
-      ),
-      approveLabel: "Reset",
-      rejectLabel: "Cancel reset",
-    }),
+  where: (command) => command.hasFlag("--hard"),
+  onMatch: () => block(REASON_RESET),
 });
 
 // ---------------------------------------------------------------------------
-// Registration — add further git gates below (rebase, …)
+// Registration — add further git gates below (clean -fdx, filter-repo, …)
 // ---------------------------------------------------------------------------
 
 export default function permissions(api: PermissionsAPI): void {
   api.onToolUse({
     name: "git push",
     description:
-      "Gate pushes: block branch deletion, allow new-branch (-u) publishes, ask otherwise.",
-    handler(input: PermissionInput) {
+      "Block pushes that delete, prune, mirror, or force-rewrite remote history.",
+    handler(input) {
       return matchTool(input.tool, { bash: gitPush });
     },
   });
 
   api.onToolUse({
     name: "git reset --hard",
-    description: "Ask before a hard reset that discards uncommitted changes.",
-    handler(input: PermissionInput) {
+    description: "Block a hard reset that discards uncommitted changes.",
+    handler(input) {
       return matchTool(input.tool, { bash: gitResetHard });
     },
   });
