@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- **pi:** vendor the rules injector into this repository
+- **pi:** deliver prompt blocks through named sections
 - **pi:** inject pip/uv/npm package mirror facts into env block via tool conventions
 - **permissions:** ungate read tool from outside-workspace hook
 - **pi:** add env injector with cache-safe static-dynamic split (#5)
@@ -44,4 +46,5 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- **adr:** record prompt-block injection decisions
 - **README:** update Claude Code setup instructions and add critical configuration steps
