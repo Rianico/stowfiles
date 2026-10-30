@@ -18,7 +18,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import type { CacheHooks } from "../../rules/cache.ts";
+import type { CacheHooks } from "../../rules-injector/cache.ts";
 import {
 	CHECKSUM_FILENAME,
 	globalCachePath,
@@ -26,7 +26,7 @@ import {
 	refreshCache,
 	sha256Hex,
 	verifyChecksums,
-} from "../../rules/cache.ts";
+} from "../../rules-injector/cache.ts";
 
 const tmpDirs: string[] = [];
 

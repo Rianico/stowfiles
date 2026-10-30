@@ -6,7 +6,7 @@
  * fences into `<user-rules>`, so its exact XML is the contract.
  */
 import { describe, expect, it } from "vitest";
-import type { LifecycleRule, PathMatcher } from "../../rules/lifecycle.ts";
+import type { LifecycleRule, PathMatcher } from "../../rules-injector/lifecycle.ts";
 import {
 	buildRulesSection,
 	buildScopedMessageContent,
@@ -24,7 +24,7 @@ import {
 	relativize,
 	RULES_SECTION_NAME,
 	ruleScope,
-} from "../../rules/lifecycle.ts";
+} from "../../rules-injector/lifecycle.ts";
 
 const unscopedA: LifecycleRule = {
 	rel: "a.md",

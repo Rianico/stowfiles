@@ -14,7 +14,7 @@ import envInjector, {
 	hasMessageTimePrefix,
 	needsTimestamp,
 	prependTimestamp,
-} from "../env-injector.ts";
+} from "../env-injector/index.ts";
 
 const NOW = new Date("2026-10-21T16:30:00.000Z");
 
