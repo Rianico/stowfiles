@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- **pi:** render the env block as a bullet list
 - **pi:** vendor the rules injector into this repository
 - **pi:** deliver prompt blocks through named sections
 - **pi:** inject pip/uv/npm package mirror facts into env block via tool conventions

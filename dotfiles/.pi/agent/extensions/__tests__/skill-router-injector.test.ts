@@ -299,7 +299,7 @@ describe("Section isolation beside another injector", () => {
 		const body = routerBodyOf(event);
 		expect(body).toContain("- `kappa-leaf -- Healthy leaf beside a malformed one.`");
 		expect(body).toContain("- `rho-leaf`");
-		expect(event.systemPromptOptions.sections["env"]).toContain("<os_type>");
+		expect(event.systemPromptOptions.sections["env"]).toContain("- os_type:");
 		expect(warn).toHaveBeenCalled();
 	});
 });

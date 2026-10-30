@@ -118,7 +118,7 @@ describe("prompt composition over the real injectors", () => {
 			expect(prompt.match(new RegExp(`</${fence}>`, "g"))).toHaveLength(1);
 		}
 
-		expect(prompt).toContain("<os_type>");
+		expect(prompt).toContain("- os_type:");
 		expect(prompt).toContain(ROUTER_LEAF);
 		expect(prompt).toContain(UNSCOPED_TEXT);
 		expect(prompt).not.toContain(SCOPED_TEXT);

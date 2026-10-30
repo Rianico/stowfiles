@@ -177,13 +177,15 @@ describe("env section", () => {
 		await beforeAgentStart(event);
 		const body = event.systemPromptOptions.sections["env"] ?? "";
 
-		expect(body).toContain(`<os_type>${detectOsType()}</os_type>`);
-		expect(body).toContain(`<shell>${await detectShell()}</shell>`);
+		expect(body).toContain(`- os_type: ${detectOsType()}`);
+		expect(body).toContain(`- shell: ${await detectShell()}`);
 		expect(body).not.toContain("<env>");
 		expect(body).not.toContain("</env>");
+		// Every fact is its own bullet line; nothing rides along on the fence line.
+		expect(body.split("\n").every((line) => line.startsWith("- "))).toBe(true);
 		// The runtime adds the fence exactly once; the exported builder still emits it.
 		expect(buildStaticBlock("macOS (Darwin 24.1.0, arm64)", "zsh 5.9")).toBe(
-			"<env><os_type>macOS (Darwin 24.1.0, arm64)</os_type><shell>zsh 5.9</shell></env>",
+			"<env>\n- os_type: macOS (Darwin 24.1.0, arm64)\n- shell: zsh 5.9\n</env>",
 		);
 	});
 

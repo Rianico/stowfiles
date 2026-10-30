@@ -16,6 +16,9 @@ The `[<ISO-UTC instant>]` line the injector writes above a fresh user message, r
 **Machine Fact** —
 A property of this workstation that an agent cannot infer from its training data or the conversation (OS, shell, package indexing endpoints). Machine Facts belong in the Environment Block.
 
+**Machine Fact Line** —
+One `- <name>: <value>` bullet in the Environment Block. The block is a bullet list, one fact per line, and the runtime supplies the single `<env>` fence around it.
+
 **Package Index** —
 The endpoint a package manager resolves packages from. Tool-specific naming: pip/uv call it the *index-url*, npm calls it the *registry*. One Package Index per tool; tools sharing a URL are still reported separately (each tool reads its own configuration).
 

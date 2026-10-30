@@ -271,19 +271,22 @@ export interface MirrorFacts {
   npm?: string;
 }
 
-/** The `<env>` facts themselves; the runtime adds the outer fence for the `env` section. */
+/**
+ * The `<env>` facts as a bullet list: one `- name: value` line per Machine Fact. The
+ * runtime adds the outer fence for the `env` section, so this returns the bullets alone.
+ */
 function buildStaticFacts(osType: string, shell: string, mirrors: MirrorFacts = {}): string {
   // Z means UTC — documented here so per-message bytes stay bare.
-  const parts = [`<os_type>${osType}</os_type>`, `<shell>${shell}</shell>`];
-  if (mirrors.pip) parts.push(`<pip_index_url>${mirrors.pip}</pip_index_url>`);
-  if (mirrors.uv) parts.push(`<uv_index_url>${mirrors.uv}</uv_index_url>`);
-  if (mirrors.npm) parts.push(`<npm_registry>${mirrors.npm}</npm_registry>`);
-  return parts.join("");
+  const facts = [`- os_type: ${osType}`, `- shell: ${shell}`];
+  if (mirrors.pip) facts.push(`- pip_index_url: ${mirrors.pip}`);
+  if (mirrors.uv) facts.push(`- uv_index_url: ${mirrors.uv}`);
+  if (mirrors.npm) facts.push(`- npm_registry: ${mirrors.npm}`);
+  return facts.join("\n");
 }
 
-/** The fenced block, for callers that need the facts as a standalone `<env>` element. */
+/** The fenced block, byte-identical to how the runtime renders the `env` section. */
 export function buildStaticBlock(osType: string, shell: string, mirrors: MirrorFacts = {}): string {
-  return `<env>${buildStaticFacts(osType, shell, mirrors)}</env>`;
+  return `<env>\n${buildStaticFacts(osType, shell, mirrors)}\n</env>`;
 }
 
 const ENV_SECTION_NAME = "env";
