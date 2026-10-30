@@ -6,3 +6,6 @@ dotfiles/.config/worktrunk/approvals.toml
 dotfiles/.config/nvim/lua/chadrc.lua
 
 .pi-lens
+.lsz/
+.pi/
+coverage/

@@ -1,3 +1,4 @@
+onboarding = false
 [ui.toast]
 delivery = "herdr"
 
@@ -26,4 +27,10 @@ kitty_graphics = true
 
 [ui]
 show_agent_labels_on_pane_borders = true
-status_indicators = "symbols"
+status_indicators = "dots"
+
+[ui.sound]
+enabled = false
+
+[session]
+resume_agents_on_restore = true

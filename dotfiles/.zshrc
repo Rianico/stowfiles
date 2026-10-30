@@ -199,3 +199,25 @@ function zle-keymap-select {
 zle -N zle-keymap-select
 echo -ne '\e[5 q'
 
+# pnpm
+# fix: pnpm global bin not in PATH (pnpm 12 requires bin dir in PATH)
+# pnpm setup fails on brew install due to cpan symlink escape, so add manually
+export PNPM_HOME="/Users/zhengxk/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+
+
+# QODER_DISPATCHER_PATH v1
+path=("$HOME/.qoder/entry" ${path:#"$HOME/.qoder/entry"})
+export PATH
+# END QODER_DISPATCHER_PATH v1
+
+# QODERCN_DISPATCHER_PATH v1
+path=("$HOME/.qoder-cn/entry" ${path:#"$HOME/.qoder-cn/entry"})
+export PATH
+# END QODERCN_DISPATCHER_PATH v1
+
+# Added by codebase-memory-mcp install
+export PATH="/Users/zhengxk/.local/bin:$PATH"

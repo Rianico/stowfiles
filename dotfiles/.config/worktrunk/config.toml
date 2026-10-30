@@ -112,7 +112,7 @@ command = "pi -p --approve --no-skills --no-session --no-extensions --no-tools -
 # squash = true      # Squash commits into one (--no-squash to preserve history)
 # commit = true      # Commit uncommitted changes first (--no-commit to skip)
 # rebase = true      # Rebase onto target before merge (--no-rebase to skip)
-# remove = true      # Remove worktree after merge (--no-remove to keep)
+# remove = false # Remove worktree after merge (--no-remove to keep)
 # verify = true      # Run project hooks (--no-hooks to skip)
 # ff = true          # Fast-forward merge (--no-ff to create a merge commit instead)
 #
@@ -252,3 +252,19 @@ pager = "delta --paging=never --width=$COLUMNS"
 # ## Hooks
 #
 # See `wt hook` (https://worktrunk.dev/hook/) for hook types, execution order, template variables, and examples. User hooks apply to all projects; project hooks (https://worktrunk.dev/config/#project-configuration) apply only to that repository.
+
+# Repo convention for github.com/Rianico/pi-better-edit (task #96 merge blocker).
+# The [pre-merge] gate runs commitlint (@commitlint/config-conventional, so
+# body-max-line-length = 100) against the message `wt merge` LLM-generates from
+# the squashed diff, and the tracked project config cannot carry this hint: issue
+# #93 reverted it and asserts `git diff feat/mvcc-line-identity...HEAD --
+# .config/wt.toml` produces no output. The wrap rule therefore lives here, in
+# the user's project-specific table, so it applies to this repo only and leaves
+# every tracked file byte-identical.
+[projects."github.com/Rianico/pi-better-edit"]
+[projects."github.com/Rianico/pi-better-edit".commit.generation]
+template-append = """
+- Hard requirement: wrap every commit body line at 72 characters or fewer.
+- Never emit a body paragraph as one long line; commitlint rejects any body
+  line longer than 100 characters and that fails the pre-merge gate.
+"""
