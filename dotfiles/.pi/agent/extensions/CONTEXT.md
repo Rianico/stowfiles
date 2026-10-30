@@ -33,3 +33,16 @@ Resolution used only for tools with no self-query command (uv): env vars first, 
 
 **Sanitized Index** —
 A Package Index URL after stripping userinfo (`user:token@`) and query strings, so no credential can reach the prompt even when embedded in an env-var override.
+
+## Rules Injector
+
+**User Rules Section** —
+The `user-rules` system-prompt section owned by the rules injector. It carries the unscoped rules only: markdown files whose frontmatter names no paths, read from the global rules directory and the project's rules directory. No other injector may claim this key.
+
+**Scoped Rule** —
+A rule whose frontmatter names paths. It is absent from the User Rules Section; it arrives once, as a hidden mid-conversation message, when a touched path matches — so the model sees it in the same run while the terminal shows only the load warning.
+
+**Rules Cache** —
+The per-project checksum record that gates re-scans: unchanged rule files cost no re-read, and the record survives compaction with the in-memory state.
+
+The npm package `pi-better-rules` is retired; `rules-injector.ts` in this directory is its home, so a session with no `<user-rules>` block means this extension failed to load — not that the package should be reinstalled.
