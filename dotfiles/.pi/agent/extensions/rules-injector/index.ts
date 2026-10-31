@@ -24,9 +24,9 @@
 import { readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { CacheHooks, FileStat } from "./rules/cache.js";
-import { projectCachePath, refreshCache, verifyChecksums } from "./rules/cache.js";
-import type { LifecycleRule, PathMatcher } from "./rules/lifecycle.js";
+import type { CacheHooks, FileStat } from "./cache.js";
+import { projectCachePath, refreshCache, verifyChecksums } from "./cache.js";
+import type { LifecycleRule, PathMatcher } from "./lifecycle.js";
 import {
 	buildRulesSection,
 	buildScopedMessageContent,
@@ -36,15 +36,15 @@ import {
 	getNewScopedRules,
 	getUnscopedRules,
 	RULES_SECTION_NAME,
-} from "./rules/lifecycle.js";
-import type { Rule, Warn } from "./rules/scanner.js";
+} from "./lifecycle.js";
+import type { Rule, Warn } from "./scanner.js";
 import {
 	findMarkdownFiles,
 	formatLoadReport,
 	formatRuleList,
 	matchesAny,
 	scanRules,
-} from "./rules/scanner.js";
+} from "./scanner.js";
 
 export interface SessionStartEvent {
 	readonly type: "session_start";

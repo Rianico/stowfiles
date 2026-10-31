@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- **permissions:** block destructive operations instead of prompting
 - **pi:** render the env block as a bullet list
 - **pi:** vendor the rules injector into this repository
 - **pi:** deliver prompt blocks through named sections

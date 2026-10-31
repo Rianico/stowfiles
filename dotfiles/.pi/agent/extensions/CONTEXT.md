@@ -48,4 +48,4 @@ A rule whose frontmatter names paths. It is absent from the User Rules Section; 
 **Rules Cache** —
 The per-project checksum record that gates re-scans: unchanged rule files cost no re-read, and the record survives compaction with the in-memory state.
 
-The npm package `pi-better-rules` is retired; `rules-injector.ts` in this directory is its home, so a session with no `<user-rules>` block means this extension failed to load — not that the package should be reinstalled.
+The npm package `pi-better-rules` is retired; `rules-injector/index.ts` in this directory is its home, so a session with no `<user-rules>` block means this extension failed to load — not that the package should be reinstalled.

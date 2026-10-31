@@ -46,6 +46,16 @@ export function promptOf(decision: unknown): RequestPromptShape | undefined {
 	}
 	return undefined;
 }
+export function blockOf(decision: unknown): string | undefined {
+	if (
+		typeof decision === "object" &&
+		decision !== null &&
+		(decision as { decision?: string }).decision === "block"
+	) {
+		return (decision as { reason?: string }).reason ?? "";
+	}
+	return undefined;
+}
 
 export function highlightSlices(command: string, highlight: unknown): string[] {
 	return resolveHighlightSpans(command, highlight).map((span) =>

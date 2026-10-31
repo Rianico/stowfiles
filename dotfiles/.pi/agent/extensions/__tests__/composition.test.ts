@@ -12,9 +12,9 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import type { Skill } from "@earendil-works/pi-coding-agent";
-import envInjector from "../env-injector.ts";
-import rulesInjector from "../rules-injector.ts";
-import skillRouterInjector from "../skill-router-injector.ts";
+import envInjector from "../env-injector/index.ts";
+import rulesInjector from "../rules-injector/index.ts";
+import skillRouterInjector from "../skill-router-injector/index.ts";
 import {
 	createCompositionHarness,
 	renderSections,

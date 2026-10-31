@@ -27,7 +27,7 @@ import {
 	MAX_WALK_DEPTH,
 	parseRule,
 	scanRules,
-} from "../../rules/scanner.ts";
+} from "../../rules-injector/scanner.ts";
 
 let root: string;
 

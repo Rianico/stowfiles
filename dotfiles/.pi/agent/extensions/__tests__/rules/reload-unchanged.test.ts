@@ -8,7 +8,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import rulesInjector from "../../rules-injector.ts";
+import rulesInjector from "../../rules-injector/index.ts";
 import { createHarness } from "./harness.ts";
 
 const RULE_TEXT = "Never leak secrets.";

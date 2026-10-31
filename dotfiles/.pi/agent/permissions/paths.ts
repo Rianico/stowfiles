@@ -9,26 +9,38 @@ import {
 	resolve,
 } from "node:path";
 import {
+	block,
 	matchTool,
 	parseShellCommand,
 	request,
+	type PermissionDecision,
+	type PermissionsAPI,
+	type SimpleCommand,
 } from "@rianico/pi-permission-lsz";
-import type { PermissionsAPI } from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
-// Gate: file access outside the current working directory
+// Gate: the workspace boundary
 // ---------------------------------------------------------------------------
 //
 // The verdict is made on the *physical* path, not the lexical one: symlinks
 // are resolved before comparing against the workspace, so a link whose real
 // target lies inside the workspace passes without prompting, and a path that
 // escapes the workspace through a symlink (even one rooted inside the
-// workspace) still prompts. The SDK only resolves paths lexically, so this
+// workspace) is still caught. The SDK only resolves paths lexically, so this
 // module resolves realpaths itself.
 //
 // Two accepted gaps: `~user` forms cannot be expanded portably and are
 // treated as outside; a dangling symlink cannot be followed, but any
 // operation through it fails anyway, so nothing can leak.
+//
+// Scope of each tool:
+//   - `read`, `grep`, `find`, `ls` inspect only, so they may reach anywhere and
+//     are not judged here.
+//   - `edit`, `write`, and `read_skill` request approval for targets outside
+//     the workspace; read-only allowlist roots skip the prompt.
+//   - `bash` is judged structurally on the parsed command: any operand or
+//     redirect that resolves outside the workspace blocks the call, except for
+//     read-only programs (grep/find/ls/cat/…) which may inspect outside paths.
 
 function looksLikeHomePath(path: string): boolean {
 	return path.startsWith("~");
@@ -72,7 +84,8 @@ function isOutside(base: string, path: string): boolean {
 // Allowlist: read-only reference content (gathered)
 // ---------------------------------------------------------------------------
 //
-// Outside-workspace reads of reference content are expected and should not prompt:
+// Outside-workspace access to reference content is expected and should not
+// prompt:
 // - Pi reference (Homebrew): docs, examples —
 //   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs,
 //   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples
@@ -80,9 +93,14 @@ function isOutside(base: string, path: string): boolean {
 //   global ~/.pi/agent/skills, ~/.pi/agent/prompts, ~/.claude/skills,
 //   ~/.codex/skills, ~/stowfiles/dotfiles/.pi/agent/prompts, …
 //   and project-local .pi/skills, .claude/skills, .agent/skills, etc.
-// Gathered here so read-only search/loader requests
-// (grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
-// bypass by default; edit/write remain gated (`read` is never gated).
+// - System temp (/tmp; macOS resolves to /private/tmp — both forms match):
+//   agent scratch output, test fixtures, file-passing between commands.
+// - Pi agent git cache (.pi/agent/git — global ~/.pi/agent/git or any
+//   <root>/.pi/agent/git): pi-internal VCS state the agent routinely inspects.
+//
+// `edit`/`write` remain gated inside a project workspace, but the gathered
+// roots are cheap to reach, so a bash command that only moves bytes between
+// them and the workspace is not a boundary crossing worth blocking.
 //
 // Skill markers are dot-prefixed roots — substring match is intentional so
 // both absolute (/Users/x/.pi/agent/skills/foo/SKILL.md) and expanded
@@ -100,7 +118,7 @@ const SKILL_PATH_MARKERS = [
 ] as const;
 
 // Global dot-configs that are expected to be read outside the workspace
-// (e.g. ~/.pi, ~/.claude, ~/.codex). Read-only probes bypass; edit/write remain gated.
+// (e.g. ~/.pi, ~/.claude, ~/.codex).
 const GLOBAL_CONFIG_MARKERS = [
 	"/.pi/",
 	"/.claude/",
@@ -119,73 +137,44 @@ const GLOBAL_CONFIG_SUFFIXES = [
 	"/.agent",
 ] as const;
 
-function isGlobalConfigPath(path: string): boolean {
-	const normalized = path.replace(/\\/g, "/");
-	return (
-		GLOBAL_CONFIG_MARKERS.some((m) => normalized.includes(m)) ||
-		GLOBAL_CONFIG_SUFFIXES.some((s) => normalized.endsWith(s))
-	);
-}
-
-function isGlobalConfigAbsolutePath(absolute: string, real: string | undefined): boolean {
-	return isGlobalConfigPath(absolute) || (real !== undefined && isGlobalConfigPath(real));
-}
-// ---------------------------------------------------------------------------
-// Allowlist: ephemeral + agent-internal read-only paths
-// ---------------------------------------------------------------------------
-//
-// Outside-workspace reads of these are expected and should not prompt:
-// - System temp (/tmp; macOS resolves to /private/tmp — both forms match):
-//   agent scratch output, test fixtures, file-passing between commands.
-// - Pi agent git cache (.pi/agent/git — global ~/.pi/agent/git or any
-//   <root>/.pi/agent/git): pi-internal VCS state the agent routinely inspects.
-// Gathered into the read-only bypass below, so read-only search requests
-// (grep/find/ls/read_skill, bash cat/bat/rg/grep/fd/find/ls/eza)
-// bypass by default; edit/write remain gated (`read` is never gated).
 const TMP_ROOTS = ["/tmp", "/private/tmp"] as const;
 
-function isTmpPath(path: string): boolean {
-	const normalized = path.replace(/\\/g, "/");
-	return TMP_ROOTS.some(
-		(root) => normalized === root || normalized.startsWith(`${root}/`),
-	);
-}
-
-function isTmpAbsolutePath(absolute: string, real: string | undefined): boolean {
-	return isTmpPath(absolute) || (real !== undefined && isTmpPath(real));
-}
-
-// Pi agent git cache — substring match is intentional so absolute
-// (/Users/x/.pi/agent/git/...) and expanded-home (~/.pi/agent/git/...) forms
-// match without requiring the path to exist (mirrors SKILL_PATH_MARKERS).
 const AGENT_GIT_MARKERS = [".pi/agent/git"] as const;
 
-function isAgentGitPath(path: string): boolean {
-	const normalized = path.replace(/\\/g, "/");
-	return AGENT_GIT_MARKERS.some((marker) => normalized.includes(marker));
-}
-
-function isAgentGitAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return (
-		isAgentGitPath(absolute) || (real !== undefined && isAgentGitPath(real))
-	);
-}
-
-// Pi docs/examples installed via Homebrew — read-only reference content that agents
-// routinely inspect (docs, examples, extensions, skills, etc.). Access via `read` or
-// bash `cat`/`rg`/`fd`/`find`/`grep` should not prompt.
+// Pi docs/examples installed via Homebrew — read-only reference content that
+// agents routinely inspect (docs, examples, extensions, skills, etc.).
 const PI_DOCS_ROOT =
 	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
 const PI_EXAMPLES_ROOT =
 	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
 const PI_REFERENCE_ROOTS = [PI_DOCS_ROOT, PI_EXAMPLES_ROOT] as const;
-const PI_ALLOWED_ROOTS = PI_REFERENCE_ROOTS;
+
+function normalize(path: string): string {
+	return path.replace(/\\/g, "/");
+}
+
+function isGlobalConfigPath(path: string): boolean {
+	const normalized = normalize(path);
+	return (
+		GLOBAL_CONFIG_MARKERS.some((marker) => normalized.includes(marker)) ||
+		GLOBAL_CONFIG_SUFFIXES.some((suffix) => normalized.endsWith(suffix))
+	);
+}
+
+function isTmpPath(path: string): boolean {
+	const normalized = normalize(path);
+	return TMP_ROOTS.some(
+		(root) => normalized === root || normalized.startsWith(`${root}/`),
+	);
+}
+
+function isAgentGitPath(path: string): boolean {
+	const normalized = normalize(path);
+	return AGENT_GIT_MARKERS.some((marker) => normalized.includes(marker));
+}
 
 function isPiReferencePath(path: string): boolean {
-	const normalized = path.replace(/\\/g, "/");
+	const normalized = normalize(path);
 	return PI_REFERENCE_ROOTS.some(
 		(root) =>
 			normalized === root ||
@@ -194,78 +183,12 @@ function isPiReferencePath(path: string): boolean {
 	);
 }
 
-function isPiReferenceAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return (
-		isPiReferencePath(absolute) || (real !== undefined && isPiReferencePath(real))
-	);
-}
-
-// Back-compat aliases — deprecated, prefer isPiReference*/isReadOnlyBypass*
-function isPiDocsPath(path: string): boolean {
-	return isPiReferencePath(path);
-}
-
-function isPiExamplesPath(path: string): boolean {
-	return isPiReferencePath(path);
-}
-
-function isPiDocsAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return isPiReferenceAbsolutePath(absolute, real);
-}
-
-function isPiExamplesAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return isPiReferenceAbsolutePath(absolute, real);
-}
-
-function isPiAllowedPath(path: string): boolean {
-	return isPiReferencePath(path);
-}
-
-function isPiAllowedAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return isPiReferenceAbsolutePath(absolute, real);
-}
-
-// Single set for every read-only bash probe that may bypass (cat/bat/rg/grep/fd/find/ls/eza)
-const READONLY_BYPASS_PROGRAMS = new Set([
-	"cat",
-	"bat",
-	"rg",
-	"grep",
-	"fd",
-	"find",
-	"ls",
-	"eza",
-]) as ReadonlySet<string>;
-const PI_DOCS_ALLOWED_PROGRAMS = READONLY_BYPASS_PROGRAMS;
-
 function isCodingAgentSkillPath(path: string): boolean {
-	const normalized = path.replace(/\\/g, "/");
+	const normalized = normalize(path);
 	return SKILL_PATH_MARKERS.some((marker) => normalized.includes(marker));
 }
 
-function isSkillAbsolutePath(
-	absolute: string,
-	real: string | undefined,
-): boolean {
-	return (
-		isCodingAgentSkillPath(absolute) ||
-		(real !== undefined && isCodingAgentSkillPath(real))
-	);
-}
-
-/** Gathered read-only allowlist: Pi reference + skills/prompts. */
+/** Gathered read-only allowlist, lexical form. */
 function isReadOnlyBypassPath(path: string): boolean {
 	return (
 		isPiReferencePath(path) ||
@@ -276,71 +199,205 @@ function isReadOnlyBypassPath(path: string): boolean {
 	);
 }
 
+/** Gathered read-only allowlist, judged on both the lexical and physical path. */
 function isReadOnlyBypassAbsolutePath(
 	absolute: string,
 	real: string | undefined,
 ): boolean {
 	return (
-		isPiReferenceAbsolutePath(absolute, real) ||
-		isSkillAbsolutePath(absolute, real) ||
-		isGlobalConfigAbsolutePath(absolute, real) ||
-		isTmpAbsolutePath(absolute, real) ||
-		isAgentGitAbsolutePath(absolute, real)
+		isReadOnlyBypassPath(absolute) ||
+		(real !== undefined && isReadOnlyBypassPath(real))
 	);
 }
 
-async function bashTouchesReadOnlyBypass(command: string): Promise<boolean> {
-	if (!isReadOnlyBypassPath(command)) return false;
-	try {
-		const parsed = await parseShellCommand(command);
-		return parsed.commands.some((cmd) => {
-			const program = cmd.programName ?? cmd.program?.text ?? "";
-			if (!READONLY_BYPASS_PROGRAMS.has(program)) return false;
-			if (isReadOnlyBypassPath(cmd.program?.text ?? "")) return true;
-			return cmd.args.some((arg) => isReadOnlyBypassPath(arg.text));
-		});
-	} catch {
-		// Fallback: raw command already contains a bypass marker and a read-only program
-		return [...READONLY_BYPASS_PROGRAMS].some(
-			(prog) => command.includes(prog) && isReadOnlyBypassPath(command),
-		);
-	}
+// ---------------------------------------------------------------------------
+// Bash: structural path inspection
+// ---------------------------------------------------------------------------
+//
+// Programs that cannot write the filesystem. They may reach outside the
+// workspace: inspecting another tree leaks nothing, and `cd` only moves the
+// shell. Anything not listed here is treated as write-capable, so its path
+// operands must stay inside the workspace (or inside an allowlisted root).
+const READ_ONLY_PROGRAMS = new Set([
+	"cat",
+	"bat",
+	"rg",
+	"grep",
+	"fd",
+	"find",
+	"ls",
+	"eza",
+	"head",
+	"tail",
+	"wc",
+	"stat",
+	"file",
+	"diff",
+	"du",
+	"jq",
+	"tree",
+	"xxd",
+	"od",
+	"realpath",
+	"which",
+	"pwd",
+	"cd",
+	"pushd",
+	"popd",
+]);
+
+// Redirect targets that are never a boundary crossing.
+const DEVICE_SINKS = ["/dev/null", "/dev/stdout", "/dev/stderr", "/dev/tty"];
+
+function isDeviceSink(path: string): boolean {
+	return (
+		DEVICE_SINKS.includes(path) ||
+		path === "/dev/fd" ||
+		path.startsWith("/dev/fd/")
+	);
 }
 
-async function bashTouchesSkillPath(command: string): Promise<boolean> {
-	// Legacy alias — prefer bashTouchesReadOnlyBypass (gathered allowlist).
-	// Now gated to read-only programs so `rm`/`cp` etc. touching a skill path still prompt.
-	if (!isCodingAgentSkillPath(command)) return false;
-	try {
-		const parsed = await parseShellCommand(command);
-		return parsed.commands.some((cmd) => {
-			const program = cmd.programName ?? cmd.program?.text ?? "";
-			if (!READONLY_BYPASS_PROGRAMS.has(program)) return false;
-			if (isCodingAgentSkillPath(cmd.program?.text ?? "")) return true;
-			return cmd.args.some((arg) => isCodingAgentSkillPath(arg.text));
-		});
-	} catch {
-		return [...READONLY_BYPASS_PROGRAMS].some(
-			(prog) => command.includes(prog) && isCodingAgentSkillPath(command),
-		);
-	}
+/** True when a token can name a location outside the cwd. */
+function looksLikePath(text: string): boolean {
+	return (
+		text === "." ||
+		text === ".." ||
+		text.startsWith("~") ||
+		text.includes("/")
+	);
 }
 
-async function bashTouchesPiDocsAllowed(command: string): Promise<boolean> {
-	if (!isPiDocsPath(command)) return false;
-	try {
-		const parsed = await parseShellCommand(command);
-		return parsed.commands.some((cmd) => {
-			const program = cmd.programName ?? cmd.program?.text ?? "";
-			if (!PI_DOCS_ALLOWED_PROGRAMS.has(program)) return false;
-			if (isPiDocsPath(cmd.program?.text ?? "")) return true;
-			return cmd.args.some((arg) => isPiDocsPath(arg.text));
-		});
-	} catch {
-		// Fallback: raw string already contains docs marker and allowed program text
-		return [...PI_DOCS_ALLOWED_PROGRAMS].some((prog) => command.includes(prog));
+/**
+ * Path-shaped operands of one command. A bare relative name (`dist`, `*.md`)
+ * cannot escape the workspace, so only tokens with a separator, a `..`, or a
+ * `~` prefix are resolved. `--flag=value` contributes its value.
+ */
+function pathOperands(command: SimpleCommand): string[] {
+	const operands: string[] = [];
+	for (const arg of command.args) {
+		const text = arg.text;
+		if (text === "--") continue;
+		if (text.startsWith("-")) {
+			const equals = text.indexOf("=");
+			if (equals === -1) continue; // a flag; its value is a separate token
+			const value = text.slice(equals + 1);
+			if (looksLikePath(value)) operands.push(value);
+			continue;
+		}
+		if (looksLikePath(text)) operands.push(text);
 	}
+	return operands;
 }
+
+/**
+ * Redirect targets inside one command's source slice (`> out`, `>> out`,
+ * `&> out`). Descriptor duplications (`2>&1`) name no path and are skipped.
+ */
+function redirectTargets(source: string): string[] {
+	const targets: string[] = [];
+	let index = 0;
+	while (index < source.length) {
+		if (source[index] !== ">") {
+			index += 1;
+			continue;
+		}
+		let cursor = index + 1;
+		if (source[cursor] === ">") cursor += 1;
+		while (source[cursor] === " " || source[cursor] === "\t") cursor += 1;
+		if (source[cursor] === "&") {
+			cursor += 1;
+			if (/[0-9-]/.test(source[cursor] ?? "")) {
+				index = cursor; // `>&2` duplicates a descriptor
+				continue;
+			}
+		}
+		const { text, end } = readToken(source, cursor);
+		if (text !== "") targets.push(text);
+		index = Math.max(end, index + 1);
+	}
+	return targets;
+}
+
+function readToken(
+	source: string,
+	start: number,
+): { text: string; end: number } {
+	const quote = source[start];
+	if (quote === '"' || quote === "'") {
+		const close = source.indexOf(quote, start + 1);
+		const end = close === -1 ? source.length : close;
+		return { text: source.slice(start + 1, end), end: end + 1 };
+	}
+	let end = start;
+	while (end < source.length && !/[\s;|&)]/.test(source[end] ?? "")) end += 1;
+	return { text: source.slice(start, end), end };
+}
+
+/** Commands in source order, so `cd` updates are applied left to right. */
+function orderedCommands(commands: readonly SimpleCommand[]): SimpleCommand[] {
+	return [...commands].sort((a, b) => a.span.start - b.span.start);
+}
+
+function cwdAfter(command: SimpleCommand, cwd: string): string {
+	if (command.programName !== "cd") return cwd;
+	const [target] = command.positionals();
+	if (!target) return cwd;
+	const expanded = expandHome(target.text);
+	if (expanded.startsWith("~")) return cwd;
+	return isAbsolute(expanded) ? resolve(expanded) : resolve(cwd, expanded);
+}
+
+/** True when `text` names a location outside the workspace and its allowlist. */
+function crossesBoundary(
+	text: string,
+	cwd: string,
+	realCwd: string,
+): boolean {
+	const expanded = expandHome(text);
+	if (expanded.startsWith("~")) return true; // ~user/...: unresolvable, assume outside
+	const absolute = isAbsolute(expanded) ? resolve(expanded) : resolve(cwd, expanded);
+	const real = realTarget(absolute);
+	const inside =
+		real === undefined ? !isOutside(cwd, absolute) : !isOutside(realCwd, real);
+	if (inside) return false;
+	return !isReadOnlyBypassAbsolutePath(absolute, real);
+}
+
+async function bashVerdict(
+	command: string,
+	cwd: string,
+	realCwd: string,
+): Promise<PermissionDecision | undefined> {
+	const parsed = await parseShellCommand(command);
+	const offenders = new Set<string>();
+	let currentCwd = resolve(cwd);
+
+	for (const parsedCommand of orderedCommands(parsed.commands)) {
+		const slice = command.slice(parsedCommand.span.start, parsedCommand.span.end);
+		for (const target of redirectTargets(slice)) {
+			if (isDeviceSink(target)) continue;
+			if (crossesBoundary(target, currentCwd, realCwd)) offenders.add(target);
+		}
+		if (!READ_ONLY_PROGRAMS.has(parsedCommand.programName ?? "")) {
+			for (const operand of pathOperands(parsedCommand)) {
+				if (crossesBoundary(operand, currentCwd, realCwd)) offenders.add(operand);
+			}
+		}
+		currentCwd = cwdAfter(parsedCommand, currentCwd);
+	}
+
+	if (offenders.size === 0) return undefined;
+	return block(
+		`Bash blocked: ${[...offenders].join(", ")} — outside the workspace (${cwd}). ` +
+			"Read-only inspection may reach outside; commands that write must stay inside the workspace. " +
+			"Run the command from the target directory, or ask the Approver.",
+	);
+}
+
+// ---------------------------------------------------------------------------
+// File tools
+// ---------------------------------------------------------------------------
+
 interface PathTool {
 	path?: string;
 	absolutePath?: string;
@@ -385,9 +442,7 @@ function pathVerdict(
 		return outsideRequest(expanded, expanded, undefined, cwd, tool.detail);
 	}
 
-	const absolute = isAbsolute(expanded)
-		? resolve(expanded)
-		: resolve(cwd, expanded);
+	const absolute = isAbsolute(expanded) ? resolve(expanded) : resolve(cwd, expanded);
 
 	// Decide on the physical path; fall back to the lexical path only when no
 	// component along the way resolves.
@@ -397,13 +452,13 @@ function pathVerdict(
 
 	if (inside) return undefined;
 
-	// Gathered read-only allowlist (reference + skills + global configs + temp + agent git):
-	// bypass only for read-only operations; edit/write remain gated.
+	// Gathered read-only allowlist (reference + skills + global configs + temp + agent git).
 	if (allowReadOnlyBypass && isReadOnlyBypassAbsolutePath(absolute, real))
 		return undefined;
 
 	return outsideRequest(target, absolute, real, cwd, tool.detail);
 }
+
 // ---------------------------------------------------------------------------
 // Registration — add further path gates below (dotfile dirs, project roots, …)
 // ---------------------------------------------------------------------------
@@ -412,46 +467,40 @@ export default function permissions(api: PermissionsAPI) {
 	api.onToolUse({
 		name: "outside workspace",
 		description:
-			"Ask before reading or writing files outside the current working directory.",
+			"Block bash that writes outside the workspace; ask before editing or writing files there.",
 		handler(input) {
 			const realCwd = realTarget(resolve(input.cwd)) ?? input.cwd;
 			return matchTool(input.tool, {
-				// Reads are never gated — `read` may touch any path. The gate
-				// only asks for writes and the search/loader tools below.
+				// Inspection only — these may reach outside the workspace.
 				read: () => undefined,
-				edit: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
-				write: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
-				grep: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				find: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				ls: (tool) => pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: true }),
-				bash: async (tool) => {
-					// Gathered read-only bypass: reference + skills + global configs + temp + agent git
-					// Only cat/bat/rg/grep/fd/find/ls/eza touching an allowlisted path bypass.
-					if (await bashTouchesReadOnlyBypass(tool.command)) return undefined;
-					return undefined;
-				},
+				grep: () => undefined,
+				find: () => undefined,
+				ls: () => undefined,
+				// Mutations: ask, never bypass, so a stray write stays visible.
+				edit: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				write: (tool) =>
+					pathVerdict(tool, input.cwd, realCwd, { allowReadOnlyBypass: false }),
+				bash: (tool) => bashVerdict(tool.command, input.cwd, realCwd),
 				custom: {
 					// `read_skill` (pi-better-edit) is a plain-text skill loader that
 					// bypasses served-state. It should never prompt when the target
 					// is a coding-agent skill path (Pi / Claude / Codex). For other
 					// locations fall back to the same outside-workspace check as `read`.
 					read_skill: (tool) => {
-						const raw = (tool.input as Record<string, unknown>)["path"];
-						const p = typeof raw === "string" ? raw : tool.detail;
-						if (isReadOnlyBypassPath(p)) return undefined;
-						// Reuse pathVerdict semantics for non-skill read_skill targets
-						// by synthesizing a PathTool from the custom input.
+						const raw = (tool.input as Record<string, unknown>).path;
+						const candidate = typeof raw === "string" ? raw : tool.detail;
+						if (isReadOnlyBypassPath(candidate)) return undefined;
+						if (typeof raw !== "string") return undefined;
+
+						const expanded = expandHome(raw);
 						const synthetic: PathTool = {
-							path: typeof raw === "string" ? raw : undefined,
-							absolutePath:
-								typeof raw === "string"
-									? isAbsolute(expandHome(raw))
-										? resolve(expandHome(raw))
-										: resolve(input.cwd, expandHome(raw))
-									: undefined,
+							path: raw,
+							absolutePath: isAbsolute(expanded)
+								? resolve(expanded)
+								: resolve(input.cwd, expanded),
 							detail: tool.detail,
 						};
-						if (synthetic.path === undefined) return undefined;
 						return pathVerdict(synthetic, input.cwd, realCwd, {
 							allowReadOnlyBypass: true,
 						});

@@ -1,114 +1,36 @@
 import {
-	matchCommand,
+	block,
 	matchTool,
-	request,
+	parseShellCommand,
+	type PermissionDecision,
 	type PermissionsAPI,
 	type SimpleCommand,
 } from "@rianico/pi-permission-lsz";
 
 // ---------------------------------------------------------------------------
-// Gates: publishing GitHub content through the `gh` CLI
+// Gates: publishing destructive GitHub operations / destroying remote state
 // ---------------------------------------------------------------------------
 //
-// Three hooks, one intent — confront the Approver before content becomes
-// visible on GitHub (issues, pull requests, and their comments/reviews appear
-// in discussions): the Approver checks the formatting and that the wording
-// accurately manifests their thoughts before anyone else sees it.
+// Policy: only irreversible loss of remote state is blocked. Publishing content
+// (issue and pull request create / edit / comment / review) stays open — the
+// Approver already reviews the draft in the session, so a second prompt adds
+// nothing.
 //
-//   - `gh issue publish`: issue content — create / edit / comment
-//   - `gh pr publish`:    pull request content — create / edit / comment /
-//                         review
-//   - `gh api …`:         write requests (POST/PATCH) to issue/PR endpoints
+// Blocked:
+//   - `gh repo delete`, `gh issue delete`, `gh release delete`,
+//     `gh release delete-asset` — the resource is gone.
+//   - `gh api` with a DELETE method — same act through the REST surface.
+//   - `gh api` PUT/PATCH against a `/git/refs` endpoint — a ref update can
+//     rewind or overwrite published history when it is forced.
 //
-// Read-only (`list`, `status`, `view`, `diff`, GET `gh api`), state-only
-// (`close`, `reopen`, `merge`, `delete`, `transfer`, `pin`/`unpin`,
-// `lock`/`unlock`), branch-only (`develop`, `checkout`), and non-content
-// commands stay ungated. GraphQL (`gh api graphql`) cannot be inspected
-// structurally and is not gated.
+// Everything else is open: reads, state-only verbs (close, reopen, merge,
+// lock), branch-only verbs (develop, checkout), and content publishing.
 
 // gh's global flags that take a value — the subcommand walk must skip the
 // value so `gh -R owner/repo issue create` still sees `issue` first.
-const GH_VALUE_FLAGS = ["-R", "--repo", "--hostname"];
+const GH_VALUE_FLAGS = ["-R", "--repo", "--hostname"] as const;
 
-// Program-scoped content verbs. The verb is the second positional after the
-// program; `new` is the documented alias of `issue create`.
-const ISSUE_VERBS = new Set(["create", "new", "edit", "comment"]);
-const PR_VERBS = new Set(["create", "edit", "comment", "review"]);
-
-// Guidance varies by program and verb so the Approver knows exactly what will
-// become visible.
-function contentGuidance(kind: "issue" | "pr", verb: string): string {
-	const kindName = kind === "issue" ? "issue" : "pull request";
-	const article = kind === "issue" ? "an" : "a";
-	switch (verb) {
-		case "create":
-		case "new":
-			return `This will create a new ${kindName} publicly on GitHub. Verify the title and body are formatted well and accurately manifest your thoughts before publishing.`;
-		case "edit":
-			return `This will edit an existing ${kindName} publicly on GitHub. Verify the changed fields are formatted well and accurately manifest your thoughts before publishing.`;
-		case "comment":
-			return `This will post a comment on ${article} ${kindName} publicly on GitHub. Verify the comment text is formatted well and accurately manifests your thoughts before publishing.`;
-		case "review":
-			return "This will submit a pull request review publicly on GitHub. Verify the review body and decision are formatted well and accurately manifest your thoughts before publishing.";
-		default:
-			return "";
-	}
-}
-
-function publishVerb(
-	command: SimpleCommand,
-	valueFlags: readonly string[],
-): string | undefined {
-	return command.positionals({ valueFlags })[1]?.text;
-}
-
-/**
- * Gate one `gh <program> <verb>` surface. The subcommand matcher guarantees
- * positionals[0] is the program, so positionals[1] is always the verb.
- */
-function contentGate(kind: "issue" | "pr", verbs: ReadonlySet<string>) {
-	return matchCommand({
-		program: "gh",
-		subcommands: [kind],
-		valueFlags: GH_VALUE_FLAGS,
-		where: (command) => {
-			const verb = publishVerb(command, GH_VALUE_FLAGS);
-			return (
-				verb !== undefined &&
-				verbs.has(verb) &&
-				// --help/-h only prints help; nothing is published.
-				!command.hasFlag("--help", "-h")
-			);
-		},
-		onMatch: ({ commands }) => {
-			const verb = publishVerb(commands[0], GH_VALUE_FLAGS) ?? "create";
-
-			return request({
-				// Whole invocations are highlighted: the command IS the content
-				// being published, so the full span is the evidence to review.
-				guidance: contentGuidance(kind, verb),
-				highlight: commands.map((command) => command.span),
-				approveLabel: "Publish",
-				rejectLabel: "Cancel",
-			});
-		},
-	});
-}
-
-const ghIssuePublish = contentGate("issue", ISSUE_VERBS);
-const ghPrPublish = contentGate("pr", PR_VERBS);
-
-// ---------------------------------------------------------------------------
-// Gate: gh api writes to issue/PR content endpoints
-// ---------------------------------------------------------------------------
-//
-// `gh api` is a general REST client, so the policy is structural: only a
-// write method (POST/PATCH) against an issue/PR content endpoint decides.
-// The URL is the first positional after `api`; the method defaults to GET
-// unless `-X`/`--method` says otherwise. GET (including with `-f` fields)
-// stays read-only and ungated.
-
-const GH_API_VALUE_FLAGS = [
+const API_VALUE_FLAGS = [
 	...GH_VALUE_FLAGS,
 	"-X",
 	"--method",
@@ -125,18 +47,20 @@ const GH_API_VALUE_FLAGS = [
 	"--template",
 	"-o",
 	"--output",
-];
+] as const;
 
-const API_WRITE_METHODS = new Set(["POST", "PATCH"]);
+// `<resource> <verb>` pairs that delete remote state permanently.
+const DELETED_RESOURCES: Readonly<Record<string, readonly string[]>> = {
+	repo: ["delete"],
+	issue: ["delete"],
+	release: ["delete", "delete-asset"],
+};
 
-// Issue/PR content endpoints: the collection, an item, and their comment and
-// review children. State endpoints such as `/issues/1/lock` do not match.
-const API_ISSUE_PR_ENDPOINT =
-	/^\/?repos\/[^/]+\/[^/]+\/(?:issues(?:\/\d+(?:\/comments(?:\/\d+)?)?)?|pulls(?:\/\d+(?:\/(?:comments|reviews)(?:\/\d+)?)?)?)\/?$/;
+const DESTRUCTIVE_METHODS = new Set(["DELETE"]);
 
-function apiUrl(command: SimpleCommand): string | undefined {
-	return command.positionals({ valueFlags: GH_API_VALUE_FLAGS })[1]?.text;
-}
+// A ref write is the API spelling of a force push.
+const REWRITE_METHODS = new Set(["PUT", "PATCH"]);
+const REF_ENDPOINT = /\/git\/refs(?:\/|$)/;
 
 function apiMethod(command: SimpleCommand): string | undefined {
 	const args = command.args;
@@ -145,9 +69,7 @@ function apiMethod(command: SimpleCommand): string | undefined {
 		if (!arg) continue;
 		if (arg.text === "-X" || arg.text === "--method") {
 			const value = args[index + 1];
-			if (value && !value.text.startsWith("-")) {
-				return value.text.toUpperCase();
-			}
+			if (value && !value.text.startsWith("-")) return value.text.toUpperCase();
 		} else if (arg.text.startsWith("--method=")) {
 			return arg.text.slice("--method=".length).toUpperCase();
 		}
@@ -155,58 +77,89 @@ function apiMethod(command: SimpleCommand): string | undefined {
 	return undefined;
 }
 
-const ghApiIssuePr = matchCommand({
-	program: "gh",
-	subcommands: ["api"],
-	valueFlags: GH_API_VALUE_FLAGS,
-	where: (command) => {
-		const url = apiUrl(command);
-		const method = apiMethod(command) ?? "GET";
-		return (
-			url !== undefined &&
-			API_WRITE_METHODS.has(method) &&
-			API_ISSUE_PR_ENDPOINT.test(url)
+/** `gh <resource> <verb>` for resources whose verb deletes them. */
+function resourceVerdict(
+	commands: readonly SimpleCommand[],
+): PermissionDecision | undefined {
+	for (const command of commands) {
+		if (command.programName !== "gh") continue;
+		// --help/-h only prints usage; nothing is deleted.
+		if (command.hasFlag("--help", "-h")) continue;
+		const words = command.positionals({ valueFlags: API_VALUE_FLAGS });
+		const resource = words[0]?.text;
+		const verb = words[1]?.text;
+		if (resource === undefined || resource === "api") continue;
+		if (verb === undefined) continue;
+		const verbs = DELETED_RESOURCES[resource];
+		if (!verbs?.includes(verb)) continue;
+		return block(
+			`Blocked: "gh ${resource} ${verb}" deletes remote state permanently. ` +
+				"Ask the Approver to run it if this is intended.",
 		);
-	},
-	onMatch: ({ commands }) =>
-		request({
-			guidance:
-				"This will submit a GitHub API request that writes issue or pull request content (visible in discussions). Verify the endpoint, method, and fields before approving.",
-			highlight: commands.map((command) => command.span),
-			approveLabel: "Send",
-			rejectLabel: "Cancel",
-		}),
-});
+	}
+	return undefined;
+}
+
+/** `gh api` writes that delete or rewind remote state. */
+function apiVerdict(
+	commands: readonly SimpleCommand[],
+): PermissionDecision | undefined {
+	for (const command of commands) {
+		if (command.programName !== "gh") continue;
+		if (command.hasFlag("--help", "-h")) continue;
+		const words = command.positionals({ valueFlags: API_VALUE_FLAGS });
+		if (words[0]?.text !== "api") continue;
+		const url = words[1]?.text;
+		if (url === undefined) continue;
+
+		const method = apiMethod(command) ?? "GET";
+		if (DESTRUCTIVE_METHODS.has(method)) {
+			return block(
+				`Blocked: "gh api -X ${method} ${url}" deletes remote state permanently. ` +
+					"Ask the Approver to run it if this is intended.",
+			);
+		}
+		if (REWRITE_METHODS.has(method) && REF_ENDPOINT.test(url)) {
+			return block(
+				`Blocked: writing ${url} with ${method} rewrites a published ref. ` +
+					"Ask the Approver to run it if this is intended.",
+			);
+		}
+	}
+	return undefined;
+}
+
 
 // ---------------------------------------------------------------------------
-// Registration — add further gh gates below (gh release, gh gist, …)
+// Registration — add further gh gates below (gh secret delete, …)
 // ---------------------------------------------------------------------------
 
 export default function permissions(api: PermissionsAPI) {
 	api.onToolUse({
-		name: "gh issue publish",
+		name: "gh resource delete",
 		description:
-			"Ask before publishing issue content to GitHub (create, edit, or comment).",
-		handler(input) {
-			return matchTool(input.tool, { bash: ghIssuePublish });
+			"Block gh commands that delete a repository, issue, or release.",
+		async handler(input) {
+			return matchTool(input.tool, {
+				async bash(tool) {
+					const parsed = await parseShellCommand(tool.command);
+					return resourceVerdict(parsed.commands);
+				},
+			});
 		},
 	});
 
 	api.onToolUse({
-		name: "gh pr publish",
+		name: "gh api destructive write",
 		description:
-			"Ask before publishing pull request content to GitHub (create, edit, comment, or review).",
-		handler(input) {
-			return matchTool(input.tool, { bash: ghPrPublish });
-		},
-	});
-
-	api.onToolUse({
-		name: "gh api issue/pr write",
-		description:
-			"Ask before a gh api write request (POST/PATCH) to an issue or pull request endpoint.",
-		handler(input) {
-			return matchTool(input.tool, { bash: ghApiIssuePr });
+			"Block gh api DELETE calls and ref rewrites that destroy remote state.",
+		async handler(input) {
+			return matchTool(input.tool, {
+				async bash(tool) {
+					const parsed = await parseShellCommand(tool.command);
+					return apiVerdict(parsed.commands);
+				},
+			});
 		},
 	});
 }

@@ -11,7 +11,7 @@
  *   build one without the runtime's session manager, model registry, and so on;
  * - the prompt options stay in the runtime's *normalised* form — `sections`, `cwd` and
  *   `skills` are required — so a router-facing fixture cannot silently omit a collection
- *   the normaliser guarantees. `rules-injector.ts` declares a narrower view of the same
+ *   the normaliser guarantees. `rules-injector/index.ts` declares a narrower view of
  *   event; structural compatibility still holds because extra required fields on the
  *   fixture side are assignable to that view.
  */
@@ -84,7 +84,7 @@ declare module "@earendil-works/pi-coding-agent" {
 	 * The prompt-start payload a handler receives for a user-started run. The runtime's
 	 * event is a union: a user run carries `prompt`, while an idle custom-message run
 	 * carries `message` instead. Handlers in this directory read only the sections, and
-	 * `rules-injector.ts` declares `prompt` as required, so that variant is mirrored here.
+	 * `rules-injector/index.ts` declares `prompt` as required, so that variant is mirrored
 	 */
 	export interface UserPromptStartEvent extends BeforeAgentStartEvent {
 		readonly prompt: string;
