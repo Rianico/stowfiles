@@ -86,9 +86,9 @@ function isOutside(base: string, path: string): boolean {
 //
 // Outside-workspace access to reference content is expected and should not
 // prompt:
-// - Pi reference (Homebrew): docs, examples —
-//   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs,
-//   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples
+// - @earendil-works packages, wherever installed (Homebrew global modules,
+//   the pnpm global store, a project's node_modules): Pi docs, examples, and
+//   package source — any project in the scope, not only pi-coding-agent.
 // - Coding-agent skills/prompts (Pi / Codex / Claude compat):
 //   global ~/.pi/agent/skills, ~/.pi/agent/prompts, ~/.claude/skills,
 //   ~/.codex/skills, ~/stowfiles/dotfiles/.pi/agent/prompts, …
@@ -141,13 +141,14 @@ const TMP_ROOTS = ["/tmp", "/private/tmp"] as const;
 
 const AGENT_GIT_MARKERS = [".pi/agent/git"] as const;
 
-// Pi docs/examples installed via Homebrew — read-only reference content that
-// agents routinely inspect (docs, examples, extensions, skills, etc.).
-const PI_DOCS_ROOT =
-	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
-const PI_EXAMPLES_ROOT =
-	"/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
-const PI_REFERENCE_ROOTS = [PI_DOCS_ROOT, PI_EXAMPLES_ROOT] as const;
+// Published `@earendil-works` packages are read-only reference content: Pi's
+// docs, examples, and package source that agents routinely inspect. The install
+// location varies — Homebrew global modules, the pnpm global store (whose
+// hashed `.pnpm/...` segments change per installation), or a project's
+// `node_modules` — and the scope carries more packages than pi-coding-agent.
+// Match the scope directory instead of one root or package name, so every
+// current and future `@earendil-works` project is reference content.
+const EARENDIL_WORKS_SCOPE = "/@earendil-works/";
 
 function normalize(path: string): string {
 	return path.replace(/\\/g, "/");
@@ -173,14 +174,8 @@ function isAgentGitPath(path: string): boolean {
 	return AGENT_GIT_MARKERS.some((marker) => normalized.includes(marker));
 }
 
-function isPiReferencePath(path: string): boolean {
-	const normalized = normalize(path);
-	return PI_REFERENCE_ROOTS.some(
-		(root) =>
-			normalized === root ||
-			normalized.startsWith(`${root}/`) ||
-			normalized.includes(`${root}/`),
-	);
+function isEarendilWorksPath(path: string): boolean {
+	return normalize(path).includes(EARENDIL_WORKS_SCOPE);
 }
 
 function isCodingAgentSkillPath(path: string): boolean {
@@ -191,7 +186,7 @@ function isCodingAgentSkillPath(path: string): boolean {
 /** Gathered read-only allowlist, lexical form. */
 function isReadOnlyBypassPath(path: string): boolean {
 	return (
-		isPiReferencePath(path) ||
+		isEarendilWorksPath(path) ||
 		isCodingAgentSkillPath(path) ||
 		isGlobalConfigPath(path) ||
 		isTmpPath(path) ||

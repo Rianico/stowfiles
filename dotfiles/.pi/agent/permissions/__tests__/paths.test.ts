@@ -180,6 +180,16 @@ describe("outside workspace gate", () => {
 		).toBeDefined();
 	});
 
+
+	it("asks before writing into a @earendil-works package", async () => {
+		const target =
+			"/Users/zhengxk/Library/pnpm/global/v11/hash/node_modules/.pnpm/@earendil-works+pi-coding-agent@1.3.0/node_modules/@earendil-works/pi-coding-agent/docs/index.md";
+		expect(
+			promptOf(
+				await decide(pathTool("write", { path: target, absolutePath: target })),
+			),
+		).toBeDefined();
+	});
 	// --- read_skill ---
 
 	it("passes read_skill for a coding-agent skill path", async () => {
@@ -203,6 +213,14 @@ describe("outside workspace gate", () => {
 				}),
 			),
 		).toBeDefined();
+	});
+
+	it("passes read_skill for any @earendil-works package resource", async () => {
+		const docs = join(
+			homedir(),
+			"Library/pnpm/global/v11/hash/node_modules/.pnpm/@earendil-works+pi-tui@1.0.0/node_modules/@earendil-works/pi-tui/README.md",
+		);
+		expect(await decide(pathTool("read_skill", { path: docs }))).toBeUndefined();
 	});
 });
 
@@ -268,6 +286,23 @@ describe("bash path gate", () => {
 		expect(await bash("make 2>&1")).toBeUndefined();
 	});
 
+	it("allows reading a @earendil-works package from the pnpm global store", async () => {
+		expect(
+			await bash(
+				"sed -n 1,40p /Users/zhengxk/Library/pnpm/global/v11/hash/node_modules/.pnpm/@earendil-works+pi-coding-agent@1.3.0/node_modules/@earendil-works/pi-coding-agent/docs/index.md",
+			),
+		).toBeUndefined();
+	});
+
+	it("allows any project in the @earendil-works scope, not only pi-coding-agent", async () => {
+		expect(
+			await bash(
+				"git -C /opt/homebrew/lib/node_modules/@earendil-works/pi-tui status",
+			),
+		).toBeUndefined();
+	});
+
+
 	// --- near misses ---
 
 	it("allows workspace-relative commands", async () => {
@@ -287,6 +322,14 @@ describe("bash path gate", () => {
 	it("ignores quoted mentions", async () => {
 		expect(await bash('echo "cp x ~/secret"')).toBeUndefined();
 	});
+	it("still blocks paths that only resemble the scope directory", async () => {
+		expect(
+			blockOf(
+				await bash("sed -n 1,5p /Users/zhengxk/other/@earendil-works-fork/notes.md"),
+			),
+		).toContain("Bash blocked");
+	});
+
 });
 
 describe("outside workspace gate — symlink resolution", () => {
